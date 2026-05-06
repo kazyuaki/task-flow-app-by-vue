@@ -16,23 +16,23 @@ cd task-flow-app-by-vue
 ### 2. コンテナ起動
 
 ```bash
-docker-compose up -d
+docker compose up -d
 ```
 
 ### 3. バックエンド（Laravel）設定
 
 ```bash
-docker-compose exec app composer install
-docker-compose exec app cp .env.example .env
-docker-compose exec app php artisan key:generate
-docker-compose exec app php artisan migrate
+docker compose exec php composer install
+docker compose exec php cp .env.example .env
+docker compose exec php php artisan key:generate
+docker compose exec php php artisan migrate
 ```
 
 ### 4. フロントエンド（Vue.js）設定
 
 ```bash
-docker-compose exec web npm install
-docker-compose exec web npm run dev
+docker compose exec node npm install
+docker compose exec node npm run dev
 ```
 
 ### 5. GitHubへの初回プッシュ（新規リポジトリ用）
