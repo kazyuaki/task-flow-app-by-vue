@@ -13,6 +13,30 @@ class Task extends Model
 {
     /** @use HasFactory<TaskFactory> */
     use HasFactory;
+    // ステータス定数
+    public const STATUS_PENDING = 0; // 0: 未着手
+    public const STATUS_IN_PROGRESS = 1; // 1: 進行中
+    public const STATUS_COMPLETED = 2; // 2: 完了
+
+    // 優先度定数
+    public const PRIORITY_LOW = 0; // 0: 低
+    public const PRIORITY_MEDIUM = 1; // 1: 中
+    public const PRIORITY_HIGH = 2; // 2: 高
+
+
+    // ステータス表示用
+    public const STATUS_LABELS = [
+        self::STATUS_PENDING => '未着手',
+        self::STATUS_IN_PROGRESS => '進行中',
+        self::STATUS_COMPLETED => '完了',
+    ];
+
+    // 優先度表示用
+    public const PRIORITY_LABELS = [
+        self::PRIORITY_LOW => '低',
+        self::PRIORITY_MEDIUM => '中',
+        self::PRIORITY_HIGH => '高',
+    ];
 
     protected function casts(): array
     {

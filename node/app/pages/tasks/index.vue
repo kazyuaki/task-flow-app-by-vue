@@ -10,112 +10,52 @@ const sortOrder = ref("asc");
 const selectedCategory = ref("");
 const categories = ["開発", "UI/UX", "テスト", "ドキュメント"];
 
-const tasks = [
-  {
-    id: 1,
-    title: "Laravel API作成",
-    description: "ログインAPIを実装する",
-    status: "未着手",
-    priority: "高",
-    category: "開発",
-    dueDate: "2026-05-10",
-  },
-  {
-    id: 2,
-    title: "Nuxt画面作成",
-    description: "一覧画面を作成する",
-    status: "進行中",
-    priority: "中",
-    category: "UI/UX",
-    dueDate: "2026-05-12",
-  },
-  {
-    id: 3,
-    title: "認証エラー表示の調整",
-    description: "ログイン失敗時のメッセージと入力状態を見直す",
-    status: "進行中",
-    priority: "高",
-    category: "UI/UX",
-    dueDate: "2026-05-08",
-  },
-  {
-    id: 4,
-    title: "タスク登録APIのバリデーション",
-    description: "必須項目と期限日フォーマットの検証を追加する",
-    status: "未着手",
-    priority: "高",
-    category: "開発",
-    dueDate: "2026-05-09",
-  },
-  {
-    id: 5,
-    title: "一覧画面のレスポンシブ確認",
-    description: "スマホ幅で検索フォームとテーブルの表示を確認する",
-    status: "未着手",
-    priority: "中",
-    category: "テスト",
-    dueDate: "2026-05-15",
-  },
-  {
-    id: 6,
-    title: "READMEのセットアップ手順更新",
-    description: "Docker起動からログイン確認までの手順を整理する",
-    status: "完了",
-    priority: "低",
-    category: "ドキュメント",
-    dueDate: "2026-05-06",
-  },
-  {
-    id: 7,
-    title: "タスク詳細ページの導線確認",
-    description: "一覧から詳細へ移動した後の戻り導線を確認する",
-    status: "進行中",
-    priority: "中",
-    category: "テスト",
-    dueDate: "2026-05-11",
-  },
-  {
-    id: 8,
-    title: "完了タスクの表示ルール整理",
-    description: "完了済みタスクの色や並び順の扱いを決める",
-    status: "未着手",
-    priority: "低",
-    category: "UI/UX",
-    dueDate: "2026-05-18",
-  },
-  {
-    id: 9,
-    title: "APIレスポンス型のメモ作成",
-    description: "タスク一覧で使うフィールド名と型をドキュメント化する",
-    status: "完了",
-    priority: "中",
-    category: "ドキュメント",
-    dueDate: "2026-05-07",
-  },
-  {
-    id: 10,
-    title: "検索条件リセット機能の検討",
-    description: "絞り込み条件をまとめて初期化するボタンの配置を考える",
-    status: "未着手",
-    priority: "低",
-    category: "開発",
-    dueDate: "2026-05-20",
-  },
-];
+const statusLabels = {
+  0: "未着手",
+  1: "進行中",
+  2: "完了",
+};
+
+const priorityLabels = {
+  0: "低",
+  1: "中",
+  2: "高",
+};
+
+const config = useRuntimeConfig();
+const apiBaseUrl = import.meta.server ? "http://nginx" : config.public.apiBaseUrl;
+const { data } = await useFetch("/api/tasks", {
+  baseURL: apiBaseUrl,
+});
+
+const tasks = computed(() => {
+  const response = data.value || {};
+  const apiTasks = Array.isArray(response.data) ? response.data : [];
+
+  return apiTasks.map((task) => ({
+    id: task.id,
+    title: task.title,
+    description: task.description ?? "",
+    status: statusLabels[task.status] ?? "未着手",
+    priority: priorityLabels[task.priority] ?? "中",
+    category: task.category?.name ?? "未分類",
+    dueDate: task.due_date ? task.due_date.slice(0, 10) : "",
+  }));
+});
 
 /* タスクのステータス別件数を計算 */
 const taskSummary = computed(() => {
   return {
-    total: tasks.length,
-    notStarted: tasks.filter((task) => task.status === "未着手").length,
-    inProgress: tasks.filter((task) => task.status === "進行中").length,
-    completed: tasks.filter((task) => task.status === "完了").length,
+    total: tasks.value.length,
+    notStarted: tasks.value.filter((task) => task.status === "未着手").length,
+    inProgress: tasks.value.filter((task) => task.status === "進行中").length,
+    completed: tasks.value.filter((task) => task.status === "完了").length,
   };
 });
 
 /* キーワード・ステータス・カテゴリ絞り込み ソート */
 const filteredTasks = computed(() => {
-  return tasks
+  return tasks.value
     .filter((task) => {
       const matchesKeyword =
         !keyword.value ||
