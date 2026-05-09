@@ -15,6 +15,7 @@ const categories = TASK_CATEGORIES;
 const config = useRuntimeConfig();
 const apiBaseUrl = process.server ? "http://nginx" : config.public.apiBaseUrl;
 const isSubmitting = ref(false);
+const touched = reactive<Record<string, boolean>>({});
 const generalError = ref("");
 const errors = reactive<Record<string, string[]>>({});
 
@@ -30,9 +31,21 @@ const form = reactive({
 
 // フォームの入力内容が有効かどうかを判定
 const canSubmit = computed(() => {
-  return !isSubmitting.value;
+  const hasRequiredFields =
+    form.title.trim() && form.description.trim() && form.dueDate;
+
+  const isValidDueDate = !form.dueDate || form.dueDate >= getToday();
+
+  return Boolean(hasRequiredFields && isValidDueDate && !isSubmitting.value);
 });
 
+// フィールドがタッチされたことを記録する関数
+const touchField = (field: string) => {
+  touched[field] = true;
+  validateForm();
+}
+
+// エラーハンドリング関数
 const clearErrors = () => {
   generalError.value = "";
 
@@ -40,16 +53,17 @@ const clearErrors = () => {
     delete errors[key];
   });
 };
-
+// 特定のフィールドのエラーをクリアする関数
 const clearFieldError = (field: string) => {
   delete errors[field];
   generalError.value = "";
 };
-
+// フィールドにエラーメッセージを追加する関数
 const addError = (field: string, message: string) => {
   errors[field] = [...(errors[field] || []), message];
 };
 
+// 今日の日付を "YYYY-MM-DD" 形式で取得する関数
 const getToday = () => {
   const today = new Date();
   const year = today.getFullYear();
@@ -59,6 +73,7 @@ const getToday = () => {
   return `${year}-${month}-${day}`;
 };
 
+// クライアント側の入力バリデーション関数
 const validateForm = () => {
   clearErrors();
 
@@ -91,6 +106,7 @@ const validateForm = () => {
   return Object.keys(errors).length === 0;
 };
 
+// サーバーからのエラーレスポンスをフォームに反映する関数
 const applyServerErrors = (error: unknown) => {
   const response = error as {
     data?: {
@@ -106,11 +122,13 @@ const applyServerErrors = (error: unknown) => {
     return;
   }
 
+  // サーバーのフィールド名とフォームのフィールド名のマッピング
   const fieldMap: Record<string, string> = {
     category_id: "category",
     due_date: "dueDate",
   };
 
+  // サーバーからのエラーをフォームのエラーオブジェクトに変換
   Object.entries(serverErrors).forEach(([field, messages]) => {
     const formField = fieldMap[field] || field;
 
@@ -151,6 +169,7 @@ const submitTask = async () => {
     isSubmitting.value = false;
   }
 };
+
 </script>
 
 <template>
@@ -183,8 +202,13 @@ const submitTask = async () => {
               placeholder="例：タスク登録APIを作成する"
               :aria-invalid="Boolean(errors.title)"
               @input="clearFieldError('title')"
+              @blur="touchField('title')"
             />
-            <small v-for="message in errors.title" :key="message" class="field-error">
+            <small
+              v-for="message in touched.title ? errors.title : []"
+              :key="message"
+              class="field-error"
+            >
               {{ message }}
             </small>
           </label>
@@ -198,9 +222,10 @@ const submitTask = async () => {
               placeholder="作業内容や完了条件を入力"
               :aria-invalid="Boolean(errors.description)"
               @input="clearFieldError('description')"
+              @blur="touchField('description')"
             />
             <small
-              v-for="message in errors.description"
+              v-for="message in touched.description ? errors.description : []"
               :key="message"
               class="field-error"
             >
@@ -220,17 +245,14 @@ const submitTask = async () => {
                 :aria-invalid="Boolean(errors.status)"
                 @change="clearFieldError('status')"
               >
-                <option v-for="status in statuses" :key="status" :value="status">
+                <option
+                  v-for="status in statuses"
+                  :key="status"
+                  :value="status"
+                >
                   {{ status }}
                 </option>
               </select>
-              <small
-                v-for="message in errors.status"
-                :key="message"
-                class="field-error"
-              >
-                {{ message }}
-              </small>
             </label>
 
             <label class="form-field">
@@ -248,13 +270,6 @@ const submitTask = async () => {
                   {{ priority }}
                 </option>
               </select>
-              <small
-                v-for="message in errors.priority"
-                :key="message"
-                class="field-error"
-              >
-                {{ message }}
-              </small>
             </label>
 
             <label class="form-field">
@@ -272,13 +287,6 @@ const submitTask = async () => {
                   {{ category }}
                 </option>
               </select>
-              <small
-                v-for="message in errors.category"
-                :key="message"
-                class="field-error"
-              >
-                {{ message }}
-              </small>
             </label>
 
             <label class="form-field">
@@ -289,9 +297,10 @@ const submitTask = async () => {
                 :min="getToday()"
                 :aria-invalid="Boolean(errors.dueDate)"
                 @input="clearFieldError('dueDate')"
+                @blur="touchField('dueDate')"
               />
               <small
-                v-for="message in errors.dueDate"
+                v-for="message in touched.dueDate ? errors.dueDate : []"
                 :key="message"
                 class="field-error"
               >
