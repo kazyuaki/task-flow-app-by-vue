@@ -1,13 +1,27 @@
 <!-- タスク一覧ページ　-->
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { ref } from "vue";
 import AppHeader from "~/components/layouts/AppHeader.vue";
+<<<<<<< Updated upstream
+<<<<<<< Updated upstream
 import PageTitle from "~/components/common/PageTitle.vue";
 import TaskFilterPanel from "~/components/tasks/TaskFilterPanel.vue";
 import TaskSummaryGrid from "~/components/tasks/TaskSummaryGrid.vue";
 import TaskTable from "~/components/tasks/TaskTable.vue";
 import { formatTask } from "~/utils/task";
 import { sortTasks } from "~/utils/taskSort";
+=======
+=======
+>>>>>>> Stashed changes
+
+import { getDueDateLabel, getDueDateClass } from "~/utils/taskDueDate";
+import { useTaskFilter } from "~/composables/useTaskFilter";
+import { useTaskSummary } from "~/composables/useTaskSummary";
+import { useTasks } from "~/composables/useTasks";
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
+>>>>>>> Stashed changes
 import type { ApiTaskResponse, SortKey, SortOrder } from "~/types/task";
 import {
   TASK_CATEGORIES,
@@ -25,31 +39,11 @@ const priorities = TASK_PRIORITIES;
 const sortKey = ref<SortKey>("dueDate");
 const sortOrder = ref<SortOrder>("asc");
 
-const config = useRuntimeConfig();
-/* APIからタスクデータを取得 */
-const apiBaseUrl = process.server
-  ? "http://nginx"
-  : config.public.apiBaseUrl;
-const { data } = await useFetch<ApiTaskResponse>("/api/tasks", {
-  baseURL: apiBaseUrl,
-});
-
-/* APIレスポンスをフロントエンドで扱いやすい形式に変換 */
-const tasks = computed(() => {
-  const apiTasks = data.value?.data || [];
-
-  return apiTasks.map(formatTask);
-});
+/* タスクデータの取得 */
+const { tasks } = await useTasks();
 
 /* タスクのステータス別件数を計算 */
-const taskSummary = computed(() => {
-  return {
-    total: tasks.value.length,
-    notStarted: tasks.value.filter((task) => task.status === "未着手").length,
-    inProgress: tasks.value.filter((task) => task.status === "進行中").length,
-    completed: tasks.value.filter((task) => task.status === "完了").length,
-  };
-});
+const taskSummary = useTaskSummary(tasks);
 
 /* ソート処理 */
 const handleSort = (key: SortKey) => {
@@ -62,27 +56,14 @@ const handleSort = (key: SortKey) => {
 };
 
 /* キーワード検索　ステータス・カテゴリ・優先度絞り込み ソート */
-const filteredTasks = computed(() => {
-  // フィルタリング
-  const filtered = tasks.value.filter((task) => {
-    const matchesKeyword =
-      !keyword.value ||
-      task.title.includes(keyword.value) ||
-      task.description.includes(keyword.value);
-
-    const matchesStatus =
-      !selectedStatus.value || task.status === selectedStatus.value;
-
-    const matchesCategory =
-      !selectedCategory.value || task.category === selectedCategory.value;
-
-    const matchesPriority =
-      !selectedPriority.value || task.priority === selectedPriority.value;
-
-    return matchesKeyword && matchesStatus && matchesCategory && matchesPriority;
-  });
-  // ソート
-  return sortTasks(filtered, sortKey.value, sortOrder.value);
+const filteredTasks = useTaskFilter({
+  tasks,
+  keyword,
+  selectedStatus,
+  selectedCategory,
+  selectedPriority,
+  sortKey,
+  sortOrder,
 });
 </script>
 
