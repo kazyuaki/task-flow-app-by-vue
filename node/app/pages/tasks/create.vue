@@ -3,6 +3,8 @@
 import AppHeader from "~/components/layouts/AppHeader.vue";
 import PageTitle from "~/components/common/PageTitle.vue";
 import { useTaskCreateForm } from "~/composables/useTaskCreateForm";
+import TaskCreateFormPanel from "~/components/tasks/TaskCreateFormPanel.vue";
+import TaskCreatePreview from "~/components/tasks/TaskCreatePreview.vue";
 
 const {
   statuses,
@@ -19,7 +21,6 @@ const {
   submitTask,
   touchField,
 } = useTaskCreateForm();
-
 </script>
 
 <template>
@@ -35,166 +36,30 @@ const {
     />
 
     <section class="create-layout">
-      <!-- 入力フォーム -->
-      <form class="form-panel" @submit.prevent="submitTask">
-        <p v-if="generalError" class="form-alert">
-          {{ generalError }}
-        </p>
+      <TaskCreateFormPanel
+        :form="form"
+        :statuses="statuses"
+        :priorities="priorities"
+        :categories="categories"
+        :errors="errors"
+        :touched="touched"
+        :general-error="generalError"
+        :is-submitting="isSubmitting"
+        :can-submit="canSubmit"
+        :due-date-min="getToday()"
+        @submit="submitTask"
+        @clear-field="clearFieldError"
+        @touch-field="touchField"
+      />
 
-        <div class="form-section">
-          <h2>基本情報</h2>
-
-          <label class="form-field">
-            <span>タイトル</span>
-            <input
-              v-model="form.title"
-              type="text"
-              placeholder="例：タスク登録APIを作成する"
-              :aria-invalid="Boolean(errors.title)"
-              @input="clearFieldError('title')"
-              @blur="touchField('title')"
-            />
-            <small
-              v-for="message in touched.title ? errors.title : []"
-              :key="message"
-              class="field-error"
-            >
-              {{ message }}
-            </small>
-          </label>
-
-          <label class="form-field">
-            <span>説明</span>
-            <textarea
-              v-model="form.description"
-              rows="5"
-              maxlength="1000"
-              placeholder="作業内容や完了条件を入力"
-              :aria-invalid="Boolean(errors.description)"
-              @input="clearFieldError('description')"
-              @blur="touchField('description')"
-            />
-            <small
-              v-for="message in touched.description ? errors.description : []"
-              :key="message"
-              class="field-error"
-            >
-              {{ message }}
-            </small>
-          </label>
-        </div>
-
-        <div class="form-section">
-          <h2>管理情報</h2>
-
-          <div class="form-grid">
-            <label class="form-field">
-              <span>ステータス</span>
-              <select
-                v-model="form.status"
-                :aria-invalid="Boolean(errors.status)"
-                @change="clearFieldError('status')"
-              >
-                <option
-                  v-for="status in statuses"
-                  :key="status"
-                  :value="status"
-                >
-                  {{ status }}
-                </option>
-              </select>
-            </label>
-
-            <label class="form-field">
-              <span>優先度</span>
-              <select
-                v-model="form.priority"
-                :aria-invalid="Boolean(errors.priority)"
-                @change="clearFieldError('priority')"
-              >
-                <option
-                  v-for="priority in priorities"
-                  :key="priority"
-                  :value="priority"
-                >
-                  {{ priority }}
-                </option>
-              </select>
-            </label>
-
-            <label class="form-field">
-              <span>カテゴリ</span>
-              <select
-                v-model="form.category"
-                :aria-invalid="Boolean(errors.category)"
-                @change="clearFieldError('category')"
-              >
-                <option
-                  v-for="category in categories"
-                  :key="category"
-                  :value="category"
-                >
-                  {{ category }}
-                </option>
-              </select>
-            </label>
-
-            <label class="form-field">
-              <span>期限</span>
-              <input
-                v-model="form.dueDate"
-                type="date"
-                :min="getToday()"
-                :aria-invalid="Boolean(errors.dueDate)"
-                @input="clearFieldError('dueDate')"
-                @blur="touchField('dueDate')"
-              />
-              <small
-                v-for="message in touched.dueDate ? errors.dueDate : []"
-                :key="message"
-                class="field-error"
-              >
-                {{ message }}
-              </small>
-            </label>
-          </div>
-        </div>
-
-        <div class="form-actions">
-          <NuxtLink class="cancel-link" to="/tasks">キャンセル</NuxtLink>
-          <button class="submit-button" type="submit" :disabled="!canSubmit">
-            {{ isSubmitting ? "作成中..." : "作成する" }}
-          </button>
-        </div>
-      </form>
-
-      <!-- 入力内容プレビュー -->
-      <aside class="preview-panel">
-        <p class="preview-label">Preview</p>
-        <h2>{{ form.title || "タスクタイトル" }}</h2>
-        <p class="preview-description">
-          {{ form.description || "ここにタスクの説明が表示されます。" }}
-        </p>
-
-        <dl class="preview-list">
-          <div>
-            <dt>ステータス</dt>
-            <dd>{{ form.status }}</dd>
-          </div>
-          <div>
-            <dt>優先度</dt>
-            <dd>{{ form.priority }}</dd>
-          </div>
-          <div>
-            <dt>カテゴリ</dt>
-            <dd>{{ form.category }}</dd>
-          </div>
-          <div>
-            <dt>期限</dt>
-            <dd>{{ form.dueDate || "未設定" }}</dd>
-          </div>
-        </dl>
-      </aside>
+      <TaskCreatePreview
+        :title="form.title"
+        :description="form.description"
+        :status="form.status"
+        :priority="form.priority"
+        :category="form.category"
+        :due-date="form.dueDate"
+      />
     </section>
   </main>
 </template>
@@ -219,222 +84,12 @@ const {
   grid-template-columns: minmax(0, 1fr) 340px;
   gap: 24px;
   align-items: start;
-}
-
-/* 入力フォーム */
-.form-panel,
-.preview-panel {
-  border: 1px solid #eaecf0;
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.94);
-  box-shadow: 0 12px 28px rgba(16, 24, 40, 0.06);
-}
-
-.form-panel {
-  display: grid;
-  gap: 24px;
-  padding: 24px;
-}
-
-.form-section {
-  display: grid;
-  gap: 16px;
-}
-
-.form-section h2 {
-  margin: 0;
-  color: #172033;
-  font-size: 16px;
-}
-
-.form-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(180px, 1fr));
-  gap: 16px;
-}
-
-.form-field {
-  display: grid;
-  gap: 8px;
-}
-
-.form-field span {
-  color: #475467;
-  font-size: 13px;
-  font-weight: 700;
-}
-
-.form-field input,
-.form-field select,
-.form-field textarea {
-  width: 100%;
-  min-height: 42px;
-  padding: 0 12px;
-  border: 1px solid #d0d5dd;
-  border-radius: 6px;
-  color: #172033;
-  font: inherit;
-  background: #fff;
-}
-
-.form-field textarea {
-  padding: 12px;
-  resize: vertical;
-  line-height: 1.6;
-}
-
-.form-field input:focus,
-.form-field select:focus,
-.form-field textarea:focus {
-  border-color: #2d6a4f;
-  outline: 3px solid rgba(45, 106, 79, 0.12);
-}
-
-.form-field input[aria-invalid="true"],
-.form-field select[aria-invalid="true"],
-.form-field textarea[aria-invalid="true"] {
-  border-color: #d92d20;
-}
-
-.form-field input[aria-invalid="true"]:focus,
-.form-field select[aria-invalid="true"]:focus,
-.form-field textarea[aria-invalid="true"]:focus {
-  border-color: #d92d20;
-  outline-color: rgba(217, 45, 32, 0.12);
-}
-
-.form-alert {
-  margin: 0;
-  padding: 12px 14px;
-  border: 1px solid #fda29b;
-  border-radius: 6px;
-  color: #b42318;
-  font-size: 14px;
-  font-weight: 700;
-  background: #fffbfa;
-}
-
-.field-error {
-  color: #b42318;
-  font-size: 12px;
-  font-weight: 700;
-  line-height: 1.5;
-}
-
-/* フォーム操作 */
-.form-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 12px;
-  padding-top: 8px;
-}
-
-.cancel-link,
-.submit-button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 42px;
-  padding: 0 16px;
-  border-radius: 8px;
-  font: inherit;
-  font-weight: 700;
-}
-
-.cancel-link {
-  border: 1px solid #d0d5dd;
-  color: #344054;
-  text-decoration: none;
-  background: #fff;
-}
-
-.submit-button {
-  border: 0;
-  color: #fff;
-  background: #2d6a4f;
-  box-shadow: 0 8px 18px rgba(45, 106, 79, 0.22);
-  cursor: pointer;
-  transition:
-    transform 0.2s ease,
-    background 0.2s ease,
-    box-shadow 0.2s ease;
-}
-
-.submit-button:hover:not(:disabled) {
-  background: #24563f;
-  transform: translateY(-1px);
-  box-shadow: 0 10px 22px rgba(45, 106, 79, 0.28);
-}
-
-.submit-button:disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
-}
-
-/* 入力内容プレビュー */
-.preview-panel {
-  position: sticky;
-  top: 24px;
-  padding: 22px;
-}
-
-.preview-label {
-  margin: 0 0 10px;
-  color: #2d6a4f;
-  font-size: 12px;
-  font-weight: 800;
-  text-transform: uppercase;
-}
-
-.preview-panel h2 {
-  margin: 0;
-  color: #172033;
-  font-size: 20px;
-}
-
-.preview-description {
-  margin: 14px 0 20px;
-  color: #667085;
-  font-size: 14px;
-  line-height: 1.7;
-}
-
-.preview-list {
-  display: grid;
-  gap: 12px;
-  margin: 0;
-}
-
-.preview-list div {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  padding-top: 12px;
-  border-top: 1px solid #eaecf0;
-}
-
-.preview-list dt {
-  color: #667085;
-  font-size: 13px;
-  font-weight: 700;
-}
-
-.preview-list dd {
-  margin: 0;
-  color: #172033;
-  font-size: 13px;
-  font-weight: 700;
+  min-width: 0;
 }
 
 @media (max-width: 860px) {
-  .create-layout,
-  .form-grid {
+  .create-layout {
     grid-template-columns: 1fr;
-  }
-
-  .preview-panel {
-    position: static;
   }
 }
 </style>
