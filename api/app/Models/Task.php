@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-#[Fillable(['user_id', 'category_id', 'title', 'description', 'status', 'due_date'])]
+#[Fillable(['user_id', 'category_id', 'title', 'description', 'status', 'priority', 'due_date'])]
 class Task extends Model
 {
     /** @use HasFactory<TaskFactory> */
