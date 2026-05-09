@@ -3,34 +3,55 @@
 import { computed, ref } from "vue";
 import AppHeader from "~/components/layouts/AppHeader.vue";
 
+type ApiTaskResponse = {
+  data: {
+    id: number;
+    title: string;
+    description?: string;
+    status: number;
+    priority: number;
+    category?: { name: string } | null;
+    due_date?: string;
+  }[];
+};
+
 const keyword = ref("");
 const selectedStatus = ref("");
 const statuses = ["未着手", "進行中", "完了"];
-const sortOrder = ref("asc");
+const sortOrder = ref<"asc" | "desc">("asc");
 const selectedCategory = ref("");
 const categories = ["開発", "UI/UX", "テスト", "ドキュメント"];
+const sortKey = ref<
+  | "id"
+  | "title"
+  | "category"
+  | "status"
+  | "priority"
+  | "dueDate"
+>("dueDate");
 
-const statusLabels = {
+const statusLabels: Record<number,string> = {
   0: "未着手",
   1: "進行中",
   2: "完了",
 };
 
-const priorityLabels = {
+const priorityLabels: Record<number,string> = {
   0: "低",
   1: "中",
   2: "高",
 };
 
 const config = useRuntimeConfig();
+/* APIからタスクデータを取得 */
 const apiBaseUrl = import.meta.server ? "http://nginx" : config.public.apiBaseUrl;
-const { data } = await useFetch("/api/tasks", {
+const { data } = await useFetch<ApiTaskResponse>("/api/tasks", {
   baseURL: apiBaseUrl,
 });
 
+/* APIレスポンスをフロントエンドで扱いやすい形式に変換 */
 const tasks = computed(() => {
-  const response = data.value || {};
-  const apiTasks = Array.isArray(response.data) ? response.data : [];
+  const apiTasks = data.value?.data || [];
 
   return apiTasks.map((task) => ({
     id: task.id,
@@ -53,9 +74,28 @@ const taskSummary = computed(() => {
   };
 });
 
+/* ソート処理 */
+const handleSort = (
+  key:
+    | "id"
+    | "title"
+    | "category"
+    | "status"
+    | "priority"
+    | "dueDate"
+) => {
+  if (sortKey.value === key) {
+    sortOrder.value = sortOrder.value === "asc" ? "desc" : "asc";
+    return;
+  } 
+    sortKey.value = key;
+    sortOrder.value = "asc";
+};
+
 /* キーワード・ステータス・カテゴリ絞り込み ソート */
 const filteredTasks = computed(() => {
   return tasks.value
+    // キーワード・ステータス・カテゴリで絞り込み
     .filter((task) => {
       const matchesKeyword =
         !keyword.value ||
@@ -70,11 +110,22 @@ const filteredTasks = computed(() => {
 
       return matchesKeyword && matchesStatus && matchesCategory;
     })
+    // ソート
     .sort((a, b) => {
-      if (sortOrder.value === "asc") {
-        return a.dueDate.localeCompare(b.dueDate);
+      const aValue = a[sortKey.value] || "";
+      const bValue = b[sortKey.value] || "";
+
+      if (sortKey.value === "id") {
+        return sortOrder.value === "asc"
+          ? Number(aValue) - Number(bValue)
+          : Number(bValue) - Number(aValue);
       }
-      return b.dueDate.localeCompare(a.dueDate);
+
+      if (sortOrder.value === "asc") {
+        return String(aValue).localeCompare(String(bValue));
+      } else {
+        return String(bValue).localeCompare(String(aValue));
+      }
     });
 });
 
@@ -215,13 +266,6 @@ const getPriorityClass = (priority: string) => {
               </option>
             </select>
           </label>
-          <label class="control-field">
-            <span>並び替え</span>
-            <select v-model="sortOrder">
-              <option value="asc">期限が近い順</option>
-              <option value="desc">期限が遠い順</option>
-            </select>
-          </label>
         </div>
       </div>
     </section>
@@ -236,14 +280,48 @@ const getPriorityClass = (priority: string) => {
       <table class="task-table">
         <thead>
           <tr>
-            <th>ID</th>
-            <th>タイトル</th>
-            <th>説明</th>
-            <th>カテゴリ</th>
-            <th>ステータス</th>
-            <th>優先度</th>
-            <th>期限</th>
-            <th>残り日数</th>
+            <th @click="handleSort('id')" class="sortable-header">
+              ID
+              <span v-if="sortKey === 'id'">
+                {{ sortOrder === "asc" ? "↑" : "↓" }}
+              </span>
+            </th>
+            <th @click="handleSort('title')" class="sortable-header">
+              タイトル
+              <span v-if="sortKey === 'title'">
+                {{ sortOrder === "asc" ? "↑" : "↓" }}
+              </span>
+            </th>
+            <th @click="handleSort('category')" class="sortable-header">
+              カテゴリ
+              <span v-if="sortKey === 'category'">
+                {{ sortOrder === "asc" ? "↑" : "↓" }}
+              </span>
+            </th>
+            <th @click="handleSort('status')" class="sortable-header">
+              ステータス
+              <span v-if="sortKey === 'status'">
+                {{ sortOrder === "asc" ? "↑" : "↓" }}
+              </span>
+            </th>
+            <th @click="handleSort('priority')" class="sortable-header">
+              優先度
+              <span v-if="sortKey === 'priority'">
+                {{ sortOrder === "asc" ? "↑" : "↓" }}
+              </span>
+            </th>
+            <th @click="handleSort('dueDate')" class="sortable-header">
+              期限
+              <span v-if="sortKey === 'dueDate'">
+                {{ sortOrder === "asc" ? "↑" : "↓" }}
+              </span>
+            </th>
+            <th @click="handleSort('dueDate')" class="sortable-header">
+              残り日数
+              <span v-if="sortKey === 'dueDate'">
+                {{ sortOrder === "asc" ? "↑" : "↓" }}
+              </span>
+            </th>
           </tr>
         </thead>
 
@@ -259,11 +337,6 @@ const getPriorityClass = (priority: string) => {
               <NuxtLink class="task-title-link" :to="`/tasks/${task.id}`">
                 {{ task.title }}
               </NuxtLink>
-            </td>
-            <td class="text-left">
-              <p class="task-description">
-                {{ task.description }}
-              </p>
             </td>
             <td>
               <span class="category-badge">
