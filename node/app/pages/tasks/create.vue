@@ -1,174 +1,24 @@
 <!-- タスク新規作成ページ -->
 <script setup lang="ts">
-import { computed, reactive, ref } from "vue";
 import AppHeader from "~/components/layouts/AppHeader.vue";
 import PageTitle from "~/components/common/PageTitle.vue";
-import {
-  TASK_CATEGORIES,
-  TASK_PRIORITIES,
-  TASK_STATUSES,
-} from "~/constants/task";
+import { useTaskCreateForm } from "~/composables/useTaskCreateForm";
 
-const statuses = TASK_STATUSES;
-const priorities = TASK_PRIORITIES;
-const categories = TASK_CATEGORIES;
-const config = useRuntimeConfig();
-const apiBaseUrl = process.server ? "http://nginx" : config.public.apiBaseUrl;
-const isSubmitting = ref(false);
-const touched = reactive<Record<string, boolean>>({});
-const generalError = ref("");
-const errors = reactive<Record<string, string[]>>({});
-
-// フォームの状態管理
-const form = reactive({
-  title: "",
-  description: "",
-  status: "未着手",
-  priority: "中",
-  category: "開発",
-  dueDate: "",
-});
-
-// フォームの入力内容が有効かどうかを判定
-const canSubmit = computed(() => {
-  const hasRequiredFields =
-    form.title.trim() && form.description.trim() && form.dueDate;
-
-  const isValidDueDate = !form.dueDate || form.dueDate >= getToday();
-
-  return Boolean(hasRequiredFields && isValidDueDate && !isSubmitting.value);
-});
-
-// フィールドがタッチされたことを記録する関数
-const touchField = (field: string) => {
-  touched[field] = true;
-  validateForm();
-}
-
-// エラーハンドリング関数
-const clearErrors = () => {
-  generalError.value = "";
-
-  Object.keys(errors).forEach((key) => {
-    delete errors[key];
-  });
-};
-// 特定のフィールドのエラーをクリアする関数
-const clearFieldError = (field: string) => {
-  delete errors[field];
-  generalError.value = "";
-};
-// フィールドにエラーメッセージを追加する関数
-const addError = (field: string, message: string) => {
-  errors[field] = [...(errors[field] || []), message];
-};
-
-// 今日の日付を "YYYY-MM-DD" 形式で取得する関数
-const getToday = () => {
-  const today = new Date();
-  const year = today.getFullYear();
-  const month = String(today.getMonth() + 1).padStart(2, "0");
-  const day = String(today.getDate()).padStart(2, "0");
-
-  return `${year}-${month}-${day}`;
-};
-
-// クライアント側の入力バリデーション関数
-const validateForm = () => {
-  clearErrors();
-
-  if (!form.title.trim()) {
-    addError("title", "タイトルを入力してください");
-  }
-  if (form.title.length > 255) {
-    addError("title", "タイトルは255文字以内で入力してください");
-  }
-  if (!form.description.trim()) {
-    addError("description", "説明を入力してください");
-  }
-  if (form.description.length > 1000) {
-    addError("description", "説明は1000文字以内で入力してください");
-  }
-  if (!statuses.includes(form.status)) {
-    addError("status", "ステータスを選択してください");
-  }
-  if (!priorities.includes(form.priority)) {
-    addError("priority", "優先度を選択してください");
-  }
-  if (!form.dueDate) {
-    addError("dueDate", "期限日を入力してください");
-  } else if (Number.isNaN(Date.parse(form.dueDate))) {
-    addError("dueDate", "期限日は正しい日付形式で入力してください");
-  } else if (form.dueDate < getToday()) {
-    addError("dueDate", "期限日は今日以降の日付を入力してください");
-  }
-
-  return Object.keys(errors).length === 0;
-};
-
-// サーバーからのエラーレスポンスをフォームに反映する関数
-const applyServerErrors = (error: unknown) => {
-  const response = error as {
-    data?: {
-      message?: string;
-      errors?: Record<string, string[]>;
-    };
-  };
-  const serverErrors = response.data?.errors;
-
-  if (!serverErrors) {
-    generalError.value =
-      response.data?.message || "タスクの作成に失敗しました。";
-    return;
-  }
-
-  // サーバーのフィールド名とフォームのフィールド名のマッピング
-  const fieldMap: Record<string, string> = {
-    category_id: "category",
-    due_date: "dueDate",
-  };
-
-  // サーバーからのエラーをフォームのエラーオブジェクトに変換
-  Object.entries(serverErrors).forEach(([field, messages]) => {
-    const formField = fieldMap[field] || field;
-
-    if (formField === "user_id") {
-      generalError.value = messages[0] || "入力内容を確認してください。";
-      return;
-    }
-
-    errors[formField] = messages;
-  });
-};
-
-// フォーム送信処理
-const submitTask = async () => {
-  if (!validateForm() || isSubmitting.value) return;
-
-  isSubmitting.value = true;
-
-  try {
-    await $fetch("/api/tasks", {
-      baseURL: apiBaseUrl,
-      method: "POST",
-      body: {
-        user_id: 1,
-        title: form.title,
-        description: form.description,
-        status: statuses.indexOf(form.status),
-        priority: priorities.indexOf(form.priority),
-        category_id: 1,
-        due_date: form.dueDate,
-      },
-    });
-    await navigateTo("/tasks");
-  } catch (error) {
-    applyServerErrors(error);
-    console.error("タスクの作成に失敗しました:", error);
-  } finally {
-    isSubmitting.value = false;
-  }
-};
+const {
+  statuses,
+  priorities,
+  categories,
+  form,
+  errors,
+  touched,
+  generalError,
+  isSubmitting,
+  canSubmit,
+  getToday,
+  clearFieldError,
+  submitTask,
+  touchField,
+} = useTaskCreateForm();
 
 </script>
 
