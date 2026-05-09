@@ -1,6 +1,6 @@
 <!-- タスク新規作成ページ -->
 <script setup lang="ts">
-import { computed, reactive } from "vue";
+import { computed, reactive, ref } from "vue";
 import AppHeader from "~/components/layouts/AppHeader.vue";
 import PageTitle from "~/components/common/PageTitle.vue";
 import {
@@ -12,6 +12,12 @@ import {
 const statuses = TASK_STATUSES;
 const priorities = TASK_PRIORITIES;
 const categories = TASK_CATEGORIES;
+const config = useRuntimeConfig();
+const apiBaseUrl = process.server ? "http://nginx" : config.public.apiBaseUrl;
+const isSubmitting = ref(false);
+const touched = reactive<Record<string, boolean>>({});
+const generalError = ref("");
+const errors = reactive<Record<string, string[]>>({});
 
 // フォームの状態管理
 const form = reactive({
@@ -25,15 +31,145 @@ const form = reactive({
 
 // フォームの入力内容が有効かどうかを判定
 const canSubmit = computed(() => {
-  return Boolean(form.title && form.description && form.dueDate);
+  const hasRequiredFields =
+    form.title.trim() && form.description.trim() && form.dueDate;
+
+  const isValidDueDate = !form.dueDate || form.dueDate >= getToday();
+
+  return Boolean(hasRequiredFields && isValidDueDate && !isSubmitting.value);
 });
+
+// フィールドがタッチされたことを記録する関数
+const touchField = (field: string) => {
+  touched[field] = true;
+  validateForm();
+}
+
+// エラーハンドリング関数
+const clearErrors = () => {
+  generalError.value = "";
+
+  Object.keys(errors).forEach((key) => {
+    delete errors[key];
+  });
+};
+// 特定のフィールドのエラーをクリアする関数
+const clearFieldError = (field: string) => {
+  delete errors[field];
+  generalError.value = "";
+};
+// フィールドにエラーメッセージを追加する関数
+const addError = (field: string, message: string) => {
+  errors[field] = [...(errors[field] || []), message];
+};
+
+// 今日の日付を "YYYY-MM-DD" 形式で取得する関数
+const getToday = () => {
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, "0");
+  const day = String(today.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+};
+
+// クライアント側の入力バリデーション関数
+const validateForm = () => {
+  clearErrors();
+
+  if (!form.title.trim()) {
+    addError("title", "タイトルを入力してください");
+  }
+  if (form.title.length > 255) {
+    addError("title", "タイトルは255文字以内で入力してください");
+  }
+  if (!form.description.trim()) {
+    addError("description", "説明を入力してください");
+  }
+  if (form.description.length > 1000) {
+    addError("description", "説明は1000文字以内で入力してください");
+  }
+  if (!statuses.includes(form.status)) {
+    addError("status", "ステータスを選択してください");
+  }
+  if (!priorities.includes(form.priority)) {
+    addError("priority", "優先度を選択してください");
+  }
+  if (!form.dueDate) {
+    addError("dueDate", "期限日を入力してください");
+  } else if (Number.isNaN(Date.parse(form.dueDate))) {
+    addError("dueDate", "期限日は正しい日付形式で入力してください");
+  } else if (form.dueDate < getToday()) {
+    addError("dueDate", "期限日は今日以降の日付を入力してください");
+  }
+
+  return Object.keys(errors).length === 0;
+};
+
+// サーバーからのエラーレスポンスをフォームに反映する関数
+const applyServerErrors = (error: unknown) => {
+  const response = error as {
+    data?: {
+      message?: string;
+      errors?: Record<string, string[]>;
+    };
+  };
+  const serverErrors = response.data?.errors;
+
+  if (!serverErrors) {
+    generalError.value =
+      response.data?.message || "タスクの作成に失敗しました。";
+    return;
+  }
+
+  // サーバーのフィールド名とフォームのフィールド名のマッピング
+  const fieldMap: Record<string, string> = {
+    category_id: "category",
+    due_date: "dueDate",
+  };
+
+  // サーバーからのエラーをフォームのエラーオブジェクトに変換
+  Object.entries(serverErrors).forEach(([field, messages]) => {
+    const formField = fieldMap[field] || field;
+
+    if (formField === "user_id") {
+      generalError.value = messages[0] || "入力内容を確認してください。";
+      return;
+    }
+
+    errors[formField] = messages;
+  });
+};
 
 // フォーム送信処理
 const submitTask = async () => {
-  if (!canSubmit.value) return;
+  if (!validateForm() || isSubmitting.value) return;
 
-  await navigateTo("/tasks");
+  isSubmitting.value = true;
+
+  try {
+    await $fetch("/api/tasks", {
+      baseURL: apiBaseUrl,
+      method: "POST",
+      body: {
+        user_id: 1,
+        title: form.title,
+        description: form.description,
+        status: statuses.indexOf(form.status),
+        priority: priorities.indexOf(form.priority),
+        category_id: 1,
+        due_date: form.dueDate,
+      },
+    });
+    await navigateTo("/tasks");
+  } catch (error) {
+    applyServerErrors(error);
+    console.error("タスクの作成に失敗しました:", error);
+  } finally {
+    isSubmitting.value = false;
+  }
 };
+
 </script>
 
 <template>
@@ -51,6 +187,10 @@ const submitTask = async () => {
     <section class="create-layout">
       <!-- 入力フォーム -->
       <form class="form-panel" @submit.prevent="submitTask">
+        <p v-if="generalError" class="form-alert">
+          {{ generalError }}
+        </p>
+
         <div class="form-section">
           <h2>基本情報</h2>
 
@@ -60,7 +200,17 @@ const submitTask = async () => {
               v-model="form.title"
               type="text"
               placeholder="例：タスク登録APIを作成する"
+              :aria-invalid="Boolean(errors.title)"
+              @input="clearFieldError('title')"
+              @blur="touchField('title')"
             />
+            <small
+              v-for="message in touched.title ? errors.title : []"
+              :key="message"
+              class="field-error"
+            >
+              {{ message }}
+            </small>
           </label>
 
           <label class="form-field">
@@ -68,8 +218,19 @@ const submitTask = async () => {
             <textarea
               v-model="form.description"
               rows="5"
+              maxlength="1000"
               placeholder="作業内容や完了条件を入力"
+              :aria-invalid="Boolean(errors.description)"
+              @input="clearFieldError('description')"
+              @blur="touchField('description')"
             />
+            <small
+              v-for="message in touched.description ? errors.description : []"
+              :key="message"
+              class="field-error"
+            >
+              {{ message }}
+            </small>
           </label>
         </div>
 
@@ -79,8 +240,16 @@ const submitTask = async () => {
           <div class="form-grid">
             <label class="form-field">
               <span>ステータス</span>
-              <select v-model="form.status">
-                <option v-for="status in statuses" :key="status" :value="status">
+              <select
+                v-model="form.status"
+                :aria-invalid="Boolean(errors.status)"
+                @change="clearFieldError('status')"
+              >
+                <option
+                  v-for="status in statuses"
+                  :key="status"
+                  :value="status"
+                >
                   {{ status }}
                 </option>
               </select>
@@ -88,7 +257,11 @@ const submitTask = async () => {
 
             <label class="form-field">
               <span>優先度</span>
-              <select v-model="form.priority">
+              <select
+                v-model="form.priority"
+                :aria-invalid="Boolean(errors.priority)"
+                @change="clearFieldError('priority')"
+              >
                 <option
                   v-for="priority in priorities"
                   :key="priority"
@@ -101,7 +274,11 @@ const submitTask = async () => {
 
             <label class="form-field">
               <span>カテゴリ</span>
-              <select v-model="form.category">
+              <select
+                v-model="form.category"
+                :aria-invalid="Boolean(errors.category)"
+                @change="clearFieldError('category')"
+              >
                 <option
                   v-for="category in categories"
                   :key="category"
@@ -114,7 +291,21 @@ const submitTask = async () => {
 
             <label class="form-field">
               <span>期限</span>
-              <input v-model="form.dueDate" type="date" />
+              <input
+                v-model="form.dueDate"
+                type="date"
+                :min="getToday()"
+                :aria-invalid="Boolean(errors.dueDate)"
+                @input="clearFieldError('dueDate')"
+                @blur="touchField('dueDate')"
+              />
+              <small
+                v-for="message in touched.dueDate ? errors.dueDate : []"
+                :key="message"
+                class="field-error"
+              >
+                {{ message }}
+              </small>
             </label>
           </div>
         </div>
@@ -122,7 +313,7 @@ const submitTask = async () => {
         <div class="form-actions">
           <NuxtLink class="cancel-link" to="/tasks">キャンセル</NuxtLink>
           <button class="submit-button" type="submit" :disabled="!canSubmit">
-            作成する
+            {{ isSubmitting ? "作成中..." : "作成する" }}
           </button>
         </div>
       </form>
@@ -247,6 +438,37 @@ const submitTask = async () => {
 .form-field textarea:focus {
   border-color: #2d6a4f;
   outline: 3px solid rgba(45, 106, 79, 0.12);
+}
+
+.form-field input[aria-invalid="true"],
+.form-field select[aria-invalid="true"],
+.form-field textarea[aria-invalid="true"] {
+  border-color: #d92d20;
+}
+
+.form-field input[aria-invalid="true"]:focus,
+.form-field select[aria-invalid="true"]:focus,
+.form-field textarea[aria-invalid="true"]:focus {
+  border-color: #d92d20;
+  outline-color: rgba(217, 45, 32, 0.12);
+}
+
+.form-alert {
+  margin: 0;
+  padding: 12px 14px;
+  border: 1px solid #fda29b;
+  border-radius: 6px;
+  color: #b42318;
+  font-size: 14px;
+  font-weight: 700;
+  background: #fffbfa;
+}
+
+.field-error {
+  color: #b42318;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.5;
 }
 
 /* フォーム操作 */
