@@ -2,49 +2,33 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
 import AppHeader from "~/components/layouts/AppHeader.vue";
-
-type ApiTaskResponse = {
-  data: {
-    id: number;
-    title: string;
-    description?: string;
-    status: number;
-    priority: number;
-    category?: { name: string } | null;
-    due_date?: string;
-  }[];
-};
+import { formatTask } from "~/utils/task";
+import { sortTasks } from "~/utils/taskSort";
+import { getDueDateLabel, getDueDateClass } from "~/utils/taskDueDate";
+import type { ApiTaskResponse, SortKey, SortOrder } from "~/types/task";
+import {
+  TASK_CATEGORIES,
+  TASK_STATUSES,
+  TASK_PRIORITIES,
+  STATUS_CLASS_MAP,
+  PRIORITY_CLASS_MAP,
+} from "~/constants/task";
 
 const keyword = ref("");
 const selectedStatus = ref("");
-const statuses = ["未着手", "進行中", "完了"];
-const sortOrder = ref<"asc" | "desc">("asc");
+const statuses = TASK_STATUSES;
 const selectedCategory = ref("");
-const categories = ["開発", "UI/UX", "テスト", "ドキュメント"];
-const sortKey = ref<
-  | "id"
-  | "title"
-  | "category"
-  | "status"
-  | "priority"
-  | "dueDate"
->("dueDate");
-
-const statusLabels: Record<number,string> = {
-  0: "未着手",
-  1: "進行中",
-  2: "完了",
-};
-
-const priorityLabels: Record<number,string> = {
-  0: "低",
-  1: "中",
-  2: "高",
-};
+const categories = TASK_CATEGORIES;
+const selectedPriority = ref("");
+const priorities = TASK_PRIORITIES;
+const sortKey = ref<SortKey>("dueDate");
+const sortOrder = ref<SortOrder>("asc");
 
 const config = useRuntimeConfig();
 /* APIからタスクデータを取得 */
-const apiBaseUrl = import.meta.server ? "http://nginx" : config.public.apiBaseUrl;
+const apiBaseUrl = process.server
+  ? "http://nginx"
+  : config.public.apiBaseUrl;
 const { data } = await useFetch<ApiTaskResponse>("/api/tasks", {
   baseURL: apiBaseUrl,
 });
@@ -53,15 +37,7 @@ const { data } = await useFetch<ApiTaskResponse>("/api/tasks", {
 const tasks = computed(() => {
   const apiTasks = data.value?.data || [];
 
-  return apiTasks.map((task) => ({
-    id: task.id,
-    title: task.title,
-    description: task.description ?? "",
-    status: statusLabels[task.status] ?? "未着手",
-    priority: priorityLabels[task.priority] ?? "中",
-    category: task.category?.name ?? "未分類",
-    dueDate: task.due_date ? task.due_date.slice(0, 10) : "",
-  }));
+  return apiTasks.map(formatTask);
 });
 
 /* タスクのステータス別件数を計算 */
@@ -75,118 +51,38 @@ const taskSummary = computed(() => {
 });
 
 /* ソート処理 */
-const handleSort = (
-  key:
-    | "id"
-    | "title"
-    | "category"
-    | "status"
-    | "priority"
-    | "dueDate"
-) => {
+const handleSort = (key: SortKey) => {
   if (sortKey.value === key) {
     sortOrder.value = sortOrder.value === "asc" ? "desc" : "asc";
     return;
-  } 
-    sortKey.value = key;
-    sortOrder.value = "asc";
+  }
+  sortKey.value = key;
+  sortOrder.value = "asc";
 };
 
-/* キーワード・ステータス・カテゴリ絞り込み ソート */
+/* キーワード検索　ステータス・カテゴリ・優先度絞り込み ソート */
 const filteredTasks = computed(() => {
-  return tasks.value
-    // キーワード・ステータス・カテゴリで絞り込み
-    .filter((task) => {
-      const matchesKeyword =
-        !keyword.value ||
-        task.title.includes(keyword.value) ||
-        task.description.includes(keyword.value);
+  // フィルタリング
+  const filtered = tasks.value.filter((task) => {
+    const matchesKeyword =
+      !keyword.value ||
+      task.title.includes(keyword.value) ||
+      task.description.includes(keyword.value);
 
-      const matchesStatus =
-        !selectedStatus.value || task.status === selectedStatus.value;
+    const matchesStatus =
+      !selectedStatus.value || task.status === selectedStatus.value;
 
-      const matchesCategory =
-        !selectedCategory.value || task.category === selectedCategory.value;
+    const matchesCategory =
+      !selectedCategory.value || task.category === selectedCategory.value;
 
-      return matchesKeyword && matchesStatus && matchesCategory;
-    })
-    // ソート
-    .sort((a, b) => {
-      const aValue = a[sortKey.value] || "";
-      const bValue = b[sortKey.value] || "";
+    const matchesPriority =
+      !selectedPriority.value || task.priority === selectedPriority.value;
 
-      if (sortKey.value === "id") {
-        return sortOrder.value === "asc"
-          ? Number(aValue) - Number(bValue)
-          : Number(bValue) - Number(aValue);
-      }
-
-      if (sortOrder.value === "asc") {
-        return String(aValue).localeCompare(String(bValue));
-      } else {
-        return String(bValue).localeCompare(String(aValue));
-      }
-    });
+    return matchesKeyword && matchesStatus && matchesCategory && matchesPriority;
+  });
+  // ソート
+  return sortTasks(filtered, sortKey.value, sortOrder.value);
 });
-
-/* 期限に応じたラベルを返す関数 */
-const getDueDateLabel = (dueDate: string) => {
-  const today = new Date();
-  const targetDate = new Date(dueDate);
-
-  today.setHours(0, 0, 0, 0);
-  targetDate.setHours(0, 0, 0, 0);
-
-  const diffTime = targetDate.getTime() - today.getTime();
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-  if (diffDays < 0) return "期限切れ";
-  if (diffDays === 0) return "今日まで";
-  if (diffDays === 1) return "明日まで";
-
-  return `あと${diffDays}日`;
-};
-
-/* 期限に応じたクラスを返す関数 */
-const getDueDateClass = (dueDate: string) => {
-  const today = new Date();
-  const targetDate = new Date(dueDate);
-
-  today.setHours(0, 0, 0, 0);
-  targetDate.setHours(0, 0, 0, 0);
-
-  const diffTime = targetDate.getTime() - today.getTime();
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-  if (diffDays < 0) return "due-label--expired";
-  if (diffDays <= 2) return "due-label--warning";
-
-  return "due-label--normal";
-};
-
-/* ステータスに応じたクラスを返す関数 */
-const getStatusClass = (status: string) => {
-  if (status === "進行中") {
-    return "status--in-progress";
-  }
-  if (status === "未着手") {
-    return "status--not-started";
-  }
-  if (status === "完了") {
-    return "status--completed";
-  }
-
-  return "";
-};
-
-/* 優先度に応じたクラスを返す関数 */
-const getPriorityClass = (priority: string) => {
-  if (priority === "高") return "priority--high";
-  if (priority === "中") return "priority--medium";
-  if (priority === "低") return "priority--low";
-
-  return "";
-};
 </script>
 
 <template>
@@ -263,6 +159,19 @@ const getPriorityClass = (priority: string) => {
                 :value="category"
               >
                 {{ category }}
+              </option>
+            </select>
+          </label>
+          <label class="control-field">
+            <span>優先度</span>
+            <select v-model="selectedPriority">
+              <option value="">すべて</option>
+              <option
+                v-for="priority in priorities"
+                :key="priority"
+                :value="priority"
+              >
+                {{ priority }}
               </option>
             </select>
           </label>
@@ -344,12 +253,12 @@ const getPriorityClass = (priority: string) => {
               </span>
             </td>
             <td>
-              <span :class="['status', getStatusClass(task.status)]">
+              <span :class="['status', STATUS_CLASS_MAP[task.status]]">
                 {{ task.status }}
               </span>
             </td>
             <td>
-              <span :class="['priority', getPriorityClass(task.priority)]">
+              <span :class="['priority', PRIORITY_CLASS_MAP[task.priority]]">
                 {{ task.priority }}
               </span>
             </td>
@@ -647,13 +556,6 @@ const getPriorityClass = (priority: string) => {
 .task-title-link:hover {
   color: #2d6a4f;
   text-decoration: underline;
-}
-
-.task-description {
-  margin: 0;
-  color: #667085;
-  font-size: 13px;
-  line-height: 1.6;
 }
 
 /* カテゴリバッジ */
