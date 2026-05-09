@@ -1,3 +1,4 @@
+<!-- ログインページのイントロダクションコンポーネント -->
 <template>
   <section class="intro">
     <p class="eyebrow">Focus your day</p>

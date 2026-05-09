@@ -1,3 +1,4 @@
+<!-- ログインページのコンポーネント -->
 <template>
   <main class="page">
     <AppHeader />

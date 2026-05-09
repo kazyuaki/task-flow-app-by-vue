@@ -1,3 +1,4 @@
+<!-- ログインフォームのパネルコンポーネント -->
 <template>
   <section class="login-panel" aria-labelledby="login-title">
     <p class="panel-label">Welcome back</p>
