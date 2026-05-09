@@ -2,10 +2,16 @@
 <script setup lang="ts">
 import { computed, reactive } from "vue";
 import AppHeader from "~/components/layouts/AppHeader.vue";
+import PageTitle from "~/components/common/PageTitle.vue";
+import {
+  TASK_CATEGORIES,
+  TASK_PRIORITIES,
+  TASK_STATUSES,
+} from "~/constants/task";
 
-const statuses = ["未着手", "進行中", "完了"];
-const priorities = ["高", "中", "低"];
-const categories = ["開発", "UI/UX", "テスト", "ドキュメント"];
+const statuses = TASK_STATUSES;
+const priorities = TASK_PRIORITIES;
+const categories = TASK_CATEGORIES;
 
 // フォームの状態管理
 const form = reactive({
@@ -34,15 +40,13 @@ const submitTask = async () => {
   <main class="page">
     <AppHeader title="タスク新規作成" />
 
-    <!-- ページヘッダー -->
-    <section class="page-header">
-      <div>
-        <p class="eyebrow">Create Task</p>
-        <h1>タスク新規作成</h1>
-      </div>
-
-      <NuxtLink class="back-link" to="/tasks">一覧へ戻る</NuxtLink>
-    </section>
+    <PageTitle
+      eyebrow="Create Task"
+      title="タスク新規作成"
+      action-label="一覧へ戻る"
+      action-to="/tasks"
+      action-variant="secondary"
+    />
 
     <section class="create-layout">
       <!-- 入力フォーム -->
@@ -166,43 +170,6 @@ const submitTask = async () => {
       transparent 32%
     ),
     linear-gradient(135deg, #f8fbfa 0%, #eef6f2 100%);
-}
-
-/* ページヘッダー */
-.page-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 24px;
-  margin-top: 40px;
-  margin-bottom: 24px;
-}
-
-.eyebrow {
-  margin: 0 0 8px;
-  color: #2d6a4f;
-  font-size: 12px;
-  font-weight: 700;
-  text-transform: uppercase;
-}
-
-.page-header h1 {
-  margin: 0;
-  font-size: 32px;
-}
-
-.back-link {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 42px;
-  padding: 0 16px;
-  border: 1px solid #d0d5dd;
-  border-radius: 8px;
-  color: #344054;
-  font-weight: 700;
-  text-decoration: none;
-  background: rgba(255, 255, 255, 0.86);
 }
 
 /* 作成画面レイアウト */
