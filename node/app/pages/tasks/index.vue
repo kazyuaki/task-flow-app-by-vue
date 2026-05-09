@@ -2,16 +2,17 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
 import AppHeader from "~/components/layouts/AppHeader.vue";
+import PageTitle from "~/components/common/PageTitle.vue";
+import TaskFilterPanel from "~/components/tasks/TaskFilterPanel.vue";
+import TaskSummaryGrid from "~/components/tasks/TaskSummaryGrid.vue";
+import TaskTable from "~/components/tasks/TaskTable.vue";
 import { formatTask } from "~/utils/task";
 import { sortTasks } from "~/utils/taskSort";
-import { getDueDateLabel, getDueDateClass } from "~/utils/taskDueDate";
 import type { ApiTaskResponse, SortKey, SortOrder } from "~/types/task";
 import {
   TASK_CATEGORIES,
   TASK_STATUSES,
   TASK_PRIORITIES,
-  STATUS_CLASS_MAP,
-  PRIORITY_CLASS_MAP,
 } from "~/constants/task";
 
 const keyword = ref("");
@@ -88,96 +89,25 @@ const filteredTasks = computed(() => {
 <template>
   <main class="page">
     <AppHeader title="タスク一覧" />
-    <!-- ページヘッダー　-->
-    <section class="page-header">
-      <div>
-        <p class="eyebrow">Tasks</p>
-        <h1>タスク一覧</h1>
-      </div>
 
-      <NuxtLink class="create-link" to="/tasks/create"> 新規作成 </NuxtLink>
-    </section>
+    <PageTitle
+      eyebrow="Tasks"
+      title="タスク一覧"
+      action-label="新規作成"
+      action-to="/tasks/create"
+    />
 
-    <section class="summary-grid">
-      <div class="summary-card summary-card--total">
-        <span>全件</span>
-        <strong>{{ taskSummary.total }}</strong>
-      </div>
-      <div class="summary-card summary-card--not-started">
-        <span>未着手</span>
-        <strong>{{ taskSummary.notStarted }}</strong>
-      </div>
-      <div class="summary-card summary-card--in-progress">
-        <span>進行中</span>
-        <strong>{{ taskSummary.inProgress }}</strong>
-      </div>
-      <div class="summary-card summary-card--completed">
-        <span>完了</span>
-        <strong>{{ taskSummary.completed }}</strong>
-      </div>
-    </section>
+    <TaskSummaryGrid :summary="taskSummary" />
 
-    <!-- 検索・絞り込みエリア　-->
-    <section class="control-panel">
-      <div class="control-group control-group--search">
-        <div class="control-heading">
-          <h2>検索</h2>
-        </div>
-
-        <label class="control-field control-field--wide">
-          <span>キーワード</span>
-          <input
-            v-model="keyword"
-            type="text"
-            placeholder="例：API、ログイン、画面"
-          />
-        </label>
-      </div>
-
-      <div class="control-group">
-        <div class="control-heading">
-          <h2>絞り込み</h2>
-        </div>
-
-        <div class="filter-grid">
-          <label class="control-field">
-            <span>ステータス</span>
-            <select v-model="selectedStatus">
-              <option value="">すべて</option>
-              <option v-for="status in statuses" :key="status" :value="status">
-                {{ status }}
-              </option>
-            </select>
-          </label>
-          <label class="control-field">
-            <span>カテゴリ</span>
-            <select v-model="selectedCategory">
-              <option value="">すべて</option>
-              <option
-                v-for="category in categories"
-                :key="category"
-                :value="category"
-              >
-                {{ category }}
-              </option>
-            </select>
-          </label>
-          <label class="control-field">
-            <span>優先度</span>
-            <select v-model="selectedPriority">
-              <option value="">すべて</option>
-              <option
-                v-for="priority in priorities"
-                :key="priority"
-                :value="priority"
-              >
-                {{ priority }}
-              </option>
-            </select>
-          </label>
-        </div>
-      </div>
-    </section>
+    <TaskFilterPanel
+      v-model:keyword="keyword"
+      v-model:selected-status="selectedStatus"
+      v-model:selected-category="selectedCategory"
+      v-model:selected-priority="selectedPriority"
+      :statuses="statuses"
+      :categories="categories"
+      :priorities="priorities"
+    />
 
     <section class="list-summary">
       <span>表示件数</span>
@@ -185,98 +115,12 @@ const filteredTasks = computed(() => {
       <span>件</span>
     </section>
 
-    <section class="table-wrapper">
-      <table class="task-table">
-        <thead>
-          <tr>
-            <th @click="handleSort('id')" class="sortable-header">
-              ID
-              <span v-if="sortKey === 'id'">
-                {{ sortOrder === "asc" ? "↑" : "↓" }}
-              </span>
-            </th>
-            <th @click="handleSort('title')" class="sortable-header">
-              タイトル
-              <span v-if="sortKey === 'title'">
-                {{ sortOrder === "asc" ? "↑" : "↓" }}
-              </span>
-            </th>
-            <th @click="handleSort('category')" class="sortable-header">
-              カテゴリ
-              <span v-if="sortKey === 'category'">
-                {{ sortOrder === "asc" ? "↑" : "↓" }}
-              </span>
-            </th>
-            <th @click="handleSort('status')" class="sortable-header">
-              ステータス
-              <span v-if="sortKey === 'status'">
-                {{ sortOrder === "asc" ? "↑" : "↓" }}
-              </span>
-            </th>
-            <th @click="handleSort('priority')" class="sortable-header">
-              優先度
-              <span v-if="sortKey === 'priority'">
-                {{ sortOrder === "asc" ? "↑" : "↓" }}
-              </span>
-            </th>
-            <th @click="handleSort('dueDate')" class="sortable-header">
-              期限
-              <span v-if="sortKey === 'dueDate'">
-                {{ sortOrder === "asc" ? "↑" : "↓" }}
-              </span>
-            </th>
-            <th @click="handleSort('dueDate')" class="sortable-header">
-              残り日数
-              <span v-if="sortKey === 'dueDate'">
-                {{ sortOrder === "asc" ? "↑" : "↓" }}
-              </span>
-            </th>
-          </tr>
-        </thead>
-
-        <tbody>
-          <tr
-            v-for="task in filteredTasks"
-            :key="task.id"
-            class="task-row"
-            @click="$router.push(`/tasks/${task.id}`)"
-          >
-            <td>{{ task.id }}</td>
-            <td class="text-left">
-              <NuxtLink class="task-title-link" :to="`/tasks/${task.id}`">
-                {{ task.title }}
-              </NuxtLink>
-            </td>
-            <td>
-              <span class="category-badge">
-                {{ task.category }}
-              </span>
-            </td>
-            <td>
-              <span :class="['status', STATUS_CLASS_MAP[task.status]]">
-                {{ task.status }}
-              </span>
-            </td>
-            <td>
-              <span :class="['priority', PRIORITY_CLASS_MAP[task.priority]]">
-                {{ task.priority }}
-              </span>
-            </td>
-            <td>{{ task.dueDate }}</td>
-            <td>
-              <span :class="['due-label', getDueDateClass(task.dueDate)]">
-                {{ getDueDateLabel(task.dueDate) }}
-              </span>
-            </td>
-          </tr>
-          <tr v-if="filteredTasks.length === 0">
-            <td class="empty-message" colspan="8">
-              条件に一致するタスクがありません
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </section>
+    <TaskTable
+      :tasks="filteredTasks"
+      :sort-key="sortKey"
+      :sort-order="sortOrder"
+      @sort="handleSort"
+    />
   </main>
 </template>
 
@@ -294,178 +138,6 @@ const filteredTasks = computed(() => {
     linear-gradient(135deg, #f8fbfa 0%, #eef6f2 100%);
 }
 
-/* ページヘッダー */
-.page-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 24px;
-  margin-top: 40px;
-  margin-bottom: 24px;
-}
-
-.eyebrow {
-  margin: 0 0 8px;
-  color: #2d6a4f;
-  font-size: 12px;
-  font-weight: 700;
-  text-transform: uppercase;
-}
-
-.page-header h1 {
-  margin: 0;
-  font-size: 32px;
-}
-
-/* 新規作成ボタン */
-.create-link {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 42px;
-  padding: 0 16px;
-  color: #fff;
-  font-weight: 700;
-  background: #2d6a4f;
-  border-radius: 8px;
-  text-decoration: none;
-  box-shadow: 0 8px 18px rgba(45, 106, 79, 0.22);
-  transition:
-    transform 0.2s ease,
-    background 0.2s ease,
-    box-shadow 0.2s ease;
-}
-
-.create-link:hover {
-  background: #24563f;
-  transform: translateY(-1px);
-  box-shadow: 0 10px 22px rgba(45, 106, 79, 0.28);
-}
-
-/* サマリーカード */
-.summary-grid {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 16px;
-  margin-bottom: 24px;
-}
-
-.summary-card {
-  padding: 18px 20px;
-  border: 1px solid #eaecf0;
-  border-radius: 12px;
-  color: #172033;
-  box-shadow: 0 10px 24px rgba(16, 24, 40, 0.06);
-}
-
-.summary-card span {
-  display: block;
-  margin-bottom: 8px;
-  color: #667085;
-  font-size: 13px;
-  font-weight: 700;
-}
-
-.summary-card strong {
-  font-size: 28px;
-  line-height: 1;
-}
-
-.summary-card--total {
-  background: linear-gradient(135deg, #ffffff 0%, #f3f4f6 100%);
-  border: 1px solid #e5e7eb;
-}
-
-.summary-card--not-started {
-  background: linear-gradient(135deg, #fff4ed 0%, #ffe8d9 100%);
-  border: 1px solid #ffd8bf;
-}
-
-.summary-card--not-started strong {
-  color: #d9480f;
-}
-
-.summary-card--in-progress {
-  background: linear-gradient(135deg, #eef6ff 0%, #dceeff 100%);
-  border: 1px solid #c5e1ff;
-}
-
-.summary-card--in-progress strong {
-  color: #1c7ed6;
-}
-
-.summary-card--completed {
-  background: linear-gradient(135deg, #edf7f1 0%, #dff3e7 100%);
-  border: 1px solid #cdebd8;
-}
-
-.summary-card--completed strong {
-  color: #2d6a4f;
-}
-
-/* 検索・絞り込みエリア */
-.control-panel {
-  display: grid;
-  gap: 20px;
-  margin-bottom: 32px;
-  padding: 20px;
-  border: 1px solid #eaecf0;
-  background: rgba(255, 255, 255, 0.92);
-  box-shadow: 0 12px 28px rgba(16, 24, 40, 0.06);
-  border-radius: 8px;
-}
-
-.control-group {
-  display: grid;
-  gap: 14px;
-}
-
-.control-group--search {
-  padding-bottom: 20px;
-  border-bottom: 1px solid #eaecf0;
-}
-
-.control-heading {
-  display: grid;
-  gap: 4px;
-}
-
-.control-heading h2 {
-  margin: 0;
-  color: #172033;
-  font-size: 15px;
-}
-
-.filter-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(180px, 1fr));
-  gap: 16px;
-}
-
-.control-field {
-  display: grid;
-  gap: 8px;
-}
-
-.control-field--wide {
-  max-width: 640px;
-}
-
-.control-field span {
-  color: #475467;
-  font-size: 13px;
-  font-weight: 700;
-}
-
-.control-field input,
-.control-field select {
-  min-height: 42px;
-  padding: 0 12px;
-  border: 1px solid #d0d5dd;
-  border-radius: 6px;
-  font: inherit;
-}
-
 /* 表示件数 */
 .list-summary {
   display: flex;
@@ -479,190 +151,5 @@ const filteredTasks = computed(() => {
 .list-summary strong {
   color: #2d6a4f;
   font-size: 18px;
-}
-
-/* タスクテーブル */
-.table-wrapper {
-  overflow-x: auto;
-  border: 1px solid #eaecf0;
-  border-radius: 8px;
-  background: #fff;
-  box-shadow: 0 12px 28px rgba(16, 24, 40, 0.06);
-}
-
-.task-table {
-  width: 100%;
-  min-width: 760px;
-  border-collapse: collapse;
-}
-
-.task-table th {
-  padding: 14px 16px;
-  color: #475467;
-  font-size: 13px;
-  text-align: center;
-  background: #f9fafb;
-}
-
-.task-table td {
-  padding: 16px;
-  border-top: 1px solid #eaecf0;
-  color: #475467;
-  font-size: 14px;
-  text-align: center;
-}
-
-.task-table tbody tr {
-  transition: background 0.2s ease;
-}
-
-.task-table tbody tr:hover {
-  background: #f8fbfa;
-}
-
-/* タスク行 */
-.task-row {
-  cursor: pointer;
-  transition:
-    background 0.2s ease,
-    transform 0.2s ease;
-}
-
-.task-row:hover {
-  background: #f8fbfa;
-}
-
-.task-row:hover td:first-child {
-  box-shadow: inset 4px 0 0 #2d6a4f;
-}
-
-.text-left {
-  text-align: left;
-}
-
-/* タスク本文 */
-.task-title {
-  color: #172033;
-  font-size: 15px;
-  font-weight: 700;
-}
-
-.task-title-link {
-  color: #172033;
-  font-weight: 700;
-  text-decoration: none;
-}
-
-.task-title-link:hover {
-  color: #2d6a4f;
-  text-decoration: underline;
-}
-
-/* カテゴリバッジ */
-.category-badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 4px 10px;
-  border-radius: 999px;
-  background: #f2f4f7;
-  color: #344054;
-  font-size: 12px;
-  font-weight: 700;
-}
-
-/* ステータスバッジ */
-.status {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  min-width: 72px;
-  padding: 4px 10px;
-  font-size: 12px;
-  font-weight: 700;
-  border-radius: 999px;
-}
-
-.status::before {
-  content: "";
-  width: 6px;
-  height: 6px;
-  border-radius: 999px;
-  background: currentColor;
-}
-
-.status--not-started {
-  color: #d9480f;
-  background: rgba(217, 72, 15, 0.1);
-}
-
-.status--in-progress {
-  color: #1c7ed6;
-  background: rgba(28, 126, 214, 0.1);
-}
-
-.status--completed {
-  color: #2d6a4f;
-  background: rgba(45, 106, 79, 0.1);
-}
-
-/* 優先度バッジ */
-.priority {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 48px;
-  padding: 4px 10px;
-  border-radius: 999px;
-  font-size: 12px;
-  font-weight: 700;
-}
-
-.priority--high {
-  color: #c92a2a;
-  background: rgba(201, 42, 42, 0.1);
-}
-
-.priority--medium {
-  color: #f08c00;
-  background: rgba(240, 140, 0, 0.12);
-}
-
-.priority--low {
-  color: #2f9e44;
-  background: rgba(47, 158, 68, 0.1);
-}
-
-/* 期限ラベル */
-.due-label {
-  color: #2d6a4f;
-  font-size: 13px;
-  font-weight: 700;
-}
-
-.due-label--normal {
-  color: #2d6a4f;
-}
-
-.due-label--warning {
-  color: #f08c00;
-}
-
-.due-label--expired {
-  color: #d92d20;
-}
-
-/* 空状態 */
-.empty-message {
-  padding: 32px;
-  color: #98a2b3;
-  text-align: center;
-}
-
-@media (max-width: 760px) {
-  .filter-grid {
-    grid-template-columns: 1fr;
-  }
 }
 </style>
