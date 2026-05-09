@@ -1,3 +1,4 @@
+<!-- タスクのサマリーを表示するグリッドコンポーネント -->
 <script setup lang="ts">
 defineProps<{
   summary: {

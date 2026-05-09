@@ -1,3 +1,4 @@
+<!-- ページタイトル　-->
 <script setup lang="ts">
 defineProps<{
   eyebrow: string;

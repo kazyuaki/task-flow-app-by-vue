@@ -1,3 +1,4 @@
+<!-- タスク一覧のフィルターパネル -->
 <script setup lang="ts">
 defineProps<{
   statuses: string[];
