@@ -2,27 +2,14 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import AppHeader from "~/components/layouts/AppHeader.vue";
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
 import PageTitle from "~/components/common/PageTitle.vue";
 import TaskFilterPanel from "~/components/tasks/TaskFilterPanel.vue";
 import TaskSummaryGrid from "~/components/tasks/TaskSummaryGrid.vue";
 import TaskTable from "~/components/tasks/TaskTable.vue";
-import { formatTask } from "~/utils/task";
-import { sortTasks } from "~/utils/taskSort";
-=======
-=======
->>>>>>> Stashed changes
-
-import { getDueDateLabel, getDueDateClass } from "~/utils/taskDueDate";
 import { useTaskFilter } from "~/composables/useTaskFilter";
 import { useTaskSummary } from "~/composables/useTaskSummary";
 import { useTasks } from "~/composables/useTasks";
-<<<<<<< Updated upstream
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
-import type { ApiTaskResponse, SortKey, SortOrder } from "~/types/task";
+import type { SortKey, SortOrder } from "~/types/task";
 import {
   TASK_CATEGORIES,
   TASK_STATUSES,

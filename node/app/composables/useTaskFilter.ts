@@ -50,4 +50,6 @@ export const useTaskFilter = ({
     // ソート
     return sortTasks(filtered, sortKey.value, sortOrder.value);
   });
+
+  return filteredTasks;
 };
