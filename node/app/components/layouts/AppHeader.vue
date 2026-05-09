@@ -1,6 +1,6 @@
 <template>
   <header class="site-header">
-    <NuxtLink class="brand" to="/">
+    <NuxtLink class="brand" to="/tasks">
       <span class="brand-mark">T</span>
       <span>Task Flow</span>
     </NuxtLink>
