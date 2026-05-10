@@ -38,9 +38,7 @@ export const useTaskDetail = async (taskId: number) => {
         task.value.priority === null || task.value.priority === undefined
           ? "未設定"
           : PRIORITY_LABELS[task.value.priority] || "不明",
-      category: task.value.category_id
-        ? `カテゴリ #${task.value.category_id}`
-        : "未分類",
+      category: task.value.category?.name || "未分類",
       dueDate: formatDate(task.value.due_date),
       assignee: `ユーザー #${task.value.user_id}`,
       createdAt: formatDate(task.value.created_at),

@@ -8,6 +8,10 @@ defineProps<{
   priority: string;
   category: string;
   dueDate: string;
+  checklist: {
+    label: string;
+    done: boolean;
+  }[];
 }>();
 </script>
 
@@ -32,6 +36,19 @@ defineProps<{
       <dt>期限</dt>
       <dd>{{ dueDate || "未設定" }}</dd>
     </dl>
+    <section class="preview-checklist">
+      <h3>チェックリスト</h3>
+      <ul v-if="checklist.some((item) => item.label.trim())">
+        <li
+          v-for="(item, index) in checklist.filter((item) => item.label.trim())"
+          :key="index"
+        >
+          {{ item.label }}
+        </li>
+      </ul>
+
+      <p v-else>未設定</p>
+    </section>
   </aside>
 </template>
 
@@ -94,6 +111,45 @@ defineProps<{
   text-align: right;
   overflow-wrap: anywhere;
   color: #172033;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.preview-checklist {
+  display: grid;
+  gap: 10px;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid #eaecf0;
+}
+
+.preview-checklist h3 {
+  margin: 0;
+  color: #172033;
+  font-size: 14px;
+}
+
+.preview-checklist ul {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.preview-checklist li {
+  padding: 8px 10px;
+  border: 1px solid #eaecf0;
+  border-radius: 8px;
+  color: #172033;
+  font-size: 13px;
+  font-weight: 700;
+  background: #fff;
+}
+
+.preview-checklist p {
+  margin: 0;
+  color: #667085;
   font-size: 13px;
   font-weight: 700;
 }

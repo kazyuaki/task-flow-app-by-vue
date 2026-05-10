@@ -9,12 +9,17 @@ class ShowTaskController extends Controller
 {
     public function __invoke(Task $task)
     {
-        $task->load('checklists');
+        $task->load(['category', 'checklists']);
 
         return response()->json([
             'id' => $task->id,
             'user_id' => $task->user_id,
             'category_id' => $task->category_id,
+            'category' => $task->category ? [
+                'id' => $task->category->id,
+                'name' => $task->category->name,
+                'color' => $task->category->color,
+            ] : null,
             'title' => $task->title,
             'description' => $task->description,
             'status' => $task->status,

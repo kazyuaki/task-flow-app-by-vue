@@ -13,6 +13,7 @@ const {
   form,
   errors,
   touched,
+  submitted,
   generalError,
   isSubmitting,
   canSubmit,
@@ -20,6 +21,8 @@ const {
   clearFieldError,
   submitTask,
   touchField,
+  addChecklistItem,
+  removeChecklistItem,
 } = useTaskCreateForm();
 </script>
 
@@ -43,6 +46,7 @@ const {
         :categories="categories"
         :errors="errors"
         :touched="touched"
+        :submitted="submitted"
         :general-error="generalError"
         :is-submitting="isSubmitting"
         :can-submit="canSubmit"
@@ -50,6 +54,8 @@ const {
         @submit="submitTask"
         @clear-field="clearFieldError"
         @touch-field="touchField"
+        @add-checklist-item="addChecklistItem"
+        @remove-checklist-item="removeChecklistItem"
       />
 
       <TaskCreatePreview
@@ -59,6 +65,7 @@ const {
         :priority="form.priority"
         :category="form.category"
         :due-date="form.dueDate"
+        :checklist="form.checklist"
       />
     </section>
   </main>

@@ -30,6 +30,10 @@ class StoreTaskRequest extends FormRequest
             'status' => ['required', 'integer'],
             'priority' => ['required', 'integer'],
             'due_date' => ['required', 'date', 'after_or_equal:today'],
+            'checklist' => ['nullable', 'array'],
+            'checklist.*.label' => ['required', 'string', 'max:255'],
+            'checklist.*.done' => ['boolean'],
+            'checklist.*.sort_order' => ['integer'],
         ];
     }
 
@@ -52,6 +56,9 @@ class StoreTaskRequest extends FormRequest
 
             'due_date.required' => '期限日を入力してください',
             'due_date.date' => '期限日は正しい日付形式で入力してください',
+
+            'checklist.*.label.required' => 'チェックリストの項目名を入力してください',
+            'checklist.*.label.max' => 'チェックリストの項目名は255文字以内で入力してください',
         ];
     }
 }

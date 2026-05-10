@@ -2,6 +2,7 @@ import { computed, reactive, ref } from "vue";
 import { validateTaskForm } from "~/utils/validation/task";
 
 import {
+  PRIORITY_VALUES,
   TASK_CATEGORIES,
   TASK_PRIORITIES,
   TASK_STATUSES,
@@ -18,6 +19,7 @@ export const useTaskCreateForm = () => {
 
   const isSubmitting = ref(false);
   const generalError = ref("");
+  const submitted = ref(false);
 
   const touched = reactive<Record<string, boolean>>({});
   const errors = reactive<Record<string, string[]>>({});
@@ -30,6 +32,12 @@ export const useTaskCreateForm = () => {
     priority: "中",
     category: "開発",
     dueDate: "",
+    checklist: [
+      {
+        label: "",
+        done: false,
+      },
+    ],
   });
 
   // 今日の日付を "YYYY-MM-DD" 形式で取得する関数
@@ -71,6 +79,15 @@ export const useTaskCreateForm = () => {
   const clearFieldError = (field: string) => {
     delete errors[field];
     generalError.value = "";
+  };
+
+  // チェックリスト関連のエラーをクリアする関数
+  const clearChecklistErrors = () => {
+    Object.keys(errors).forEach((key) => {
+      if (key.startsWith("checklist.")) {
+        delete errors[key];
+      }
+    });
   };
 
   // フィールドにエラーメッセージを追加する関数
@@ -128,13 +145,36 @@ export const useTaskCreateForm = () => {
     });
   };
 
+  // チェックリストアイテムの追加・削除関数
+  const addChecklistItem = () => {
+    form.checklist.push({
+      label: "",
+      done: false,
+    });
+  };
+
+  // チェックリストアイテムの削除関数
+  const removeChecklistItem = (index: number) => {
+    form.checklist.splice(index, 1);
+    clearChecklistErrors();
+  };
+
   // フォーム送信処理
   const submitTask = async () => {
+    submitted.value = true;
+
     if (!validateForm() || isSubmitting.value) return;
 
     isSubmitting.value = true;
 
     try {
+      const checklist = form.checklist
+        .map((item) => ({
+          label: item.label.trim(),
+          done: item.done,
+        }))
+        .filter((item) => item.label);
+
       await $fetch("/api/tasks", {
         baseURL: apiBaseUrl,
         method: "POST",
@@ -143,9 +183,14 @@ export const useTaskCreateForm = () => {
           title: form.title,
           description: form.description,
           status: statuses.indexOf(form.status),
-          priority: priorities.indexOf(form.priority),
-          category_id: 1,
+          priority: PRIORITY_VALUES[form.priority],
+          category_id: categories.indexOf(form.category) + 1,
           due_date: form.dueDate,
+          checklist: checklist.map((item, index) => ({
+            label: item.label,
+            done: item.done,
+            sort_order: index + 1,
+          })),
         },
       });
       await navigateTo("/tasks");
@@ -164,6 +209,7 @@ export const useTaskCreateForm = () => {
     form,
     errors,
     touched,
+    submitted,
     generalError,
     isSubmitting,
     canSubmit,
@@ -171,5 +217,7 @@ export const useTaskCreateForm = () => {
     clearFieldError,
     submitTask,
     touchField,
+    addChecklistItem,
+    removeChecklistItem,
   };
 };
