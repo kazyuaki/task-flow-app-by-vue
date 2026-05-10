@@ -21,6 +21,7 @@ export type ApiTaskDetail = {
   id: number;
   user_id: number;
   category_id: number | null;
+  category?: { id: number; name: string; color?: string | null } | null;
   title: string;
   description: string | null;
   status: number;

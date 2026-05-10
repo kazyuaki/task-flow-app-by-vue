@@ -18,6 +18,12 @@ export const PRIORITY_LABELS: Record<number, string> = {
   2: "高",
 };
 
+export const PRIORITY_VALUES: Record<string, number> = {
+  低: 0,
+  中: 1,
+  高: 2,
+};
+
 export const STATUS_CLASS_MAP: Record<string, string> = {
   未着手: "status--not-started",
   進行中: "status--in-progress",

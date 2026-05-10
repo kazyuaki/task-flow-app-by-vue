@@ -5,6 +5,10 @@ type ValidateTaskFormParams = {
     status: string;
     priority: string;
     dueDate: string;
+    checklist: {
+      label: string;
+      done: boolean;
+    }[];
   };
   statuses: readonly string[];
   priorities: readonly string[];
@@ -45,4 +49,15 @@ export const validateTaskForm = ({
   } else if (form.dueDate < getToday()) {
     addError("dueDate", "期限日は今日以降の日付を入力してください");
   }
+
+  form.checklist.forEach((item, index) => {
+    const label = item.label.trim();
+
+    if (label.length > 255) {
+      addError(
+        `checklist.${index}.label`,
+        "チェックリストの項目は255文字以内で入力してください",
+      );
+    }
+  });
 };

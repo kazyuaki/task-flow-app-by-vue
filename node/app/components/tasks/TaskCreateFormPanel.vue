@@ -4,6 +4,7 @@
 import BaseSelectField from "~/components/common/BaseSelectField.vue";
 import BaseTextField from "~/components/common/BaseTextField.vue";
 import BaseTextareaField from "~/components/common/BaseTextareaField.vue";
+import TaskCreateChecklistFields from "~/components/tasks/TaskCreateChecklistFields.vue";
 
 type TaskCreateForm = {
   title: string;
@@ -12,6 +13,10 @@ type TaskCreateForm = {
   priority: string;
   category: string;
   dueDate: string;
+  checklist: {
+    label: string;
+    done: boolean;
+  }[];
 };
 
 defineProps<{
@@ -21,6 +26,7 @@ defineProps<{
   categories: readonly string[];
   errors: Record<string, string[]>;
   touched: Record<string, boolean>;
+  submitted: boolean;
   generalError: string;
   isSubmitting: boolean;
   canSubmit: boolean;
@@ -31,6 +37,8 @@ const emit = defineEmits<{
   (e: "submit"): void;
   (e: "clear-field", field: string): void;
   (e: "touch-field", field: string): void;
+  (e: "add-checklist-item"): void;
+  (e: "remove-checklist-item", index: number): void;
 }>();
 </script>
 
@@ -47,7 +55,7 @@ const emit = defineEmits<{
         v-model="form.title"
         label="タイトル"
         placeholder="タスクのタイトルを入力"
-        :errors="touched.title ? errors.title : []"
+        :errors="touched.title || submitted ? errors.title : []"
         @input="emit('clear-field', 'title')"
         @blur="emit('touch-field', 'title')"
       />
@@ -58,7 +66,7 @@ const emit = defineEmits<{
         placeholder="作業内容や完了条件を入力"
         :rows="5"
         :maxlength="1000"
-        :errors="touched.description ? errors.description : []"
+        :errors="touched.description || submitted ? errors.description : []"
         @input="emit('clear-field', 'description')"
         @blur="emit('touch-field', 'description')"
       />
@@ -72,7 +80,7 @@ const emit = defineEmits<{
           v-model="form.status"
           label="ステータス"
           :options="statuses"
-          :errors="errors.status"
+          :errors="submitted ? errors.status : []"
           @change="emit('clear-field', 'status')"
         />
 
@@ -80,7 +88,7 @@ const emit = defineEmits<{
           v-model="form.priority"
           label="優先度"
           :options="priorities"
-          :errors="errors.priority"
+          :errors="submitted ? errors.priority : []"
           @change="emit('clear-field', 'priority')"
         />
 
@@ -88,7 +96,7 @@ const emit = defineEmits<{
           v-model="form.category"
           label="カテゴリ"
           :options="categories"
-          :errors="errors.category"
+          :errors="submitted ? errors.category : []"
           @change="emit('clear-field', 'category')"
         />
 
@@ -97,12 +105,23 @@ const emit = defineEmits<{
           label="期限"
           type="date"
           :min="dueDateMin"
-          :errors="touched.dueDate ? errors.dueDate : []"
+          :errors="touched.dueDate || submitted ? errors.dueDate : []"
           @input="emit('clear-field', 'dueDate')"
           @blur="emit('touch-field', 'dueDate')"
         />
       </fieldset>
     </section>
+
+    <TaskCreateChecklistFields
+      :checklist="form.checklist"
+      :errors="errors"
+      :touched="touched"
+      :submitted="submitted"
+      @add-item="emit('add-checklist-item')"
+      @remove-item="emit('remove-checklist-item', $event)"
+      @clear-field="emit('clear-field', $event)"
+      @touch-field="emit('touch-field', $event)"
+    />
 
     <footer class="form-actions">
       <NuxtLink class="cancel-link" to="/tasks">キャンセル</NuxtLink>
