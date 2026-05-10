@@ -2,7 +2,7 @@
 <!-- タスク詳細カードコンポーネント -->
 
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, ref } from "vue";
 import { PRIORITY_CLASS_MAP, STATUS_CLASS_MAP } from "~/constants/task";
 import type { TaskDetail } from "~/types/task";
 
@@ -18,15 +18,29 @@ const priorityClass = computed(
   () => PRIORITY_CLASS_MAP[props.task.priority] || "",
 );
 
+// --- チェックリストのローカル状態 ---
+const localChecklist = ref([...props.task.checklist]);
+
+// チェックリストの完了状態をトグルする関数
+const toggleChecklist = (id: number) => {
+  const item = localChecklist.value.find((item) => item.id === id);
+  if (!item) return;
+
+  item.done = !item.done;
+  console.log("チェックリストの状態が変更されました:", localChecklist.value);
+};
+
+
 // --- チェックリストの進捗計算 ---
 const checklistProgress = computed(() => {
-  const done = props.task.checklist.filter((item) => item.done).length;
+  const done = localChecklist.value.filter((item) => item.done).length;
 
   return {
     done,
-    total: props.task.checklist.length,
+    total: localChecklist.value.length,
   };
 });
+
 </script>
 
 <template>
@@ -73,14 +87,22 @@ const checklistProgress = computed(() => {
 
       <ul class="checklist">
         <li
-          v-for="item in task.checklist"
-          :key="item.label"
+          v-for="item in localChecklist"
+          :key="item.id"
           :class="{ 'checklist-item--done': item.done }"
         >
+        <label class="checklist-label">
+          <input 
+          type="checkbox"
+          :checked="item.done"
+          class="checklist-input"
+          @change="toggleChecklist(item.id)"
+          >
           <span class="checkmark" aria-hidden="true">
-            {{ item.done ? "✓" : "" }}
+            {{ item.done ? "✔︎" : "" }}
           </span>
           <span>{{ item.label }}</span>
+        </label>
         </li>
       </ul>
     </section>
@@ -267,6 +289,18 @@ const checklistProgress = computed(() => {
 .checklist-item--done {
   color: #667085;
   background: #f8fbfa;
+}
+
+.checklist-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  cursor: pointer;
+}
+
+.checklist-input {
+  display: none;
 }
 
 .checkmark {
