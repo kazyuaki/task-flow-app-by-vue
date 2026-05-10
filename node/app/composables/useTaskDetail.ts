@@ -45,11 +45,7 @@ export const useTaskDetail = async (taskId: number) => {
       assignee: `ユーザー #${task.value.user_id}`,
       createdAt: formatDate(task.value.created_at),
       updatedAt: formatDate(task.value.updated_at),
-      checklist: [
-        { label: "詳細APIからタスクを取得する", done: true },
-        { label: "表示項目を確認する", done: true },
-        { label: "編集画面への導線を検討する", done: false },
-      ],
+      checklist: task.value.checklist || [],
     };
   });
   return {

@@ -28,6 +28,7 @@ export type ApiTaskDetail = {
   due_date?: string | null;
   created_at: string;
   updated_at: string;
+  checklist?: ChecklistItem[];
 };
 
 /* ------------------------------
@@ -45,6 +46,7 @@ export type Task = {
 };
 
 export type ChecklistItem = {
+  id: number;
   label: string;
   done: boolean;
 };
