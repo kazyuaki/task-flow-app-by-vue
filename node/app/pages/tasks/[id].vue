@@ -1,96 +1,117 @@
 <script setup lang="ts">
 import AppHeader from "~/components/layouts/AppHeader.vue";
 import PageTitle from "~/components/common/PageTitle.vue";
+import {
+  PRIORITY_CLASS_MAP,
+  PRIORITY_LABELS,
+  STATUS_CLASS_MAP,
+  STATUS_LABELS,
+} from "~/constants/task";
+
+type ApiTaskDetail = {
+  id: number;
+  user_id: number;
+  category_id: number | null;
+  title: string;
+  description: string | null;
+  status: number;
+  priority?: number | null;
+  due_date?: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+type DisplayTask = {
+  id: number;
+  title: string;
+  description: string;
+  status: string;
+  priority: string;
+  category: string;
+  dueDate: string;
+  assignee: string;
+  createdAt: string;
+  updatedAt: string;
+  checklist: {
+    label: string;
+    done: boolean;
+  }[];
+};
 
 const route = useRoute();
 
 const taskId = Number(route.params.id);
 
-const mockTasks: Record<
-  number,
-  {
-    id: number;
-    title: string;
-    description: string;
-    status: string;
-    priority: string;
-    category: string;
-    dueDate: string;
-    assignee: string;
-    createdAt: string;
-    updatedAt: string;
-    checklist: {
-      label: string;
-      done: boolean;
-    }[];
-  }
-> = {
-  1: {
-    id: 1,
-    title: "APIの実装",
-    description: "ユーザー認証用のAPIを実装する",
-    status: "進行中",
-    priority: "高",
-    category: "開発",
-    dueDate: "2026-05-15",
-    assignee: "山本 和明",
-    createdAt: "2026-05-01",
-    updatedAt: "2026-05-09",
-    checklist: [
-      { label: "エンドポイント設計を確認する", done: true },
-      { label: "リクエストバリデーションを実装する", done: true },
-      { label: "レスポンス形式をフロントと合わせる", done: false },
-    ],
-  },
-  2: {
-    id: 2,
-    title: "ログイン画面の作成",
-    description: "ユーザーがログインできる画面を作成する",
-    status: "未着手",
-    priority: "中",
-    category: "UI/UX",
-    dueDate: "2026-05-20",
-    assignee: "佐藤 美咲",
-    createdAt: "2026-05-03",
-    updatedAt: "2026-05-08",
-    checklist: [
-      { label: "入力項目を整理する", done: true },
-      { label: "フォームのエラー表示を作る", done: false },
-      { label: "スマートフォン表示を確認する", done: false },
-    ],
-  },
+const config = useRuntimeConfig();
+
+const apiBaseUrl = process.server
+  ? "http://nginx"
+  : String(config.public.apiBaseUrl);
+
+const {
+  data: task,
+  pending,
+  error,
+} = await useFetch<ApiTaskDetail>(`/api/tasks/${taskId}`, {
+  baseURL: apiBaseUrl,
+});
+
+// --- ヘルパー関数 ---
+const formatDate = (date?: string | null) => {
+  if (!date) return "未設定";
+
+  return new Date(date).toLocaleDateString("ja-JP");
 };
 
-const mockTask = computed(() => mockTasks[taskId]);
+// --- 表示用のデータ整形 ---
+const displayTask = computed<DisplayTask | null>(() => {
+	if (!task.value) return null;
 
+	return {
+		id: task.value.id,
+		title: task.value.title,
+		description: task.value.description || "説明は未設定です。",
+		status: STATUS_LABELS[task.value.status] || "不明",
+		priority:
+      task.value.priority === null || task.value.priority === undefined
+        ? "未設定"
+        : PRIORITY_LABELS[task.value.priority] || "不明",
+    category: task.value.category_id ? `カテゴリ #${task.value.category_id}` : "未分類",
+		dueDate: formatDate(task.value.due_date),
+    assignee: `ユーザー #${task.value.user_id}`,
+		createdAt: formatDate(task.value.created_at),
+		updatedAt: formatDate(task.value.updated_at),
+		checklist: [
+      { label: "詳細APIからタスクを取得する", done: true },
+      { label: "表示項目を確認する", done: true },
+      { label: "編集画面への導線を検討する", done: false },
+    ],
+	};
+});
+
+// --- クラス名の算出 ---
 const statusClass = computed(() => {
-  if (!mockTask.value) return "";
+  if (!displayTask.value) return "";
 
-  return {
-    未着手: "status--not-started",
-    進行中: "status--in-progress",
-    完了: "status--completed",
-  }[mockTask.value.status];
+  return STATUS_CLASS_MAP[displayTask.value.status] || "";
 });
 
+// 優先度はnullの可能性があるため、未設定の場合は特別に扱う
 const priorityClass = computed(() => {
-  if (!mockTask.value) return "";
+  if (!displayTask.value) return "";
 
-  return {
-    高: "priority--high",
-    中: "priority--medium",
-    低: "priority--low",
-  }[mockTask.value.priority];
+  return PRIORITY_CLASS_MAP[displayTask.value.priority] || "";
 });
 
+// --- チェックリストの進捗計算 ---
 const checklistProgress = computed(() => {
-  if (!mockTask.value) return { done: 0, total: 0 };
+  if (!displayTask.value) return { done: 0, total: 0 };
 
-  const done = mockTask.value.checklist.filter((item) => item.done).length;
+  const done = displayTask.value.checklist.filter((item) => item.done).length;
 
   return {
     done,
-    total: mockTask.value.checklist.length,
+    total: displayTask.value.checklist.length,
   };
 });
 </script>
@@ -107,50 +128,60 @@ const checklistProgress = computed(() => {
       action-variant="secondary"
     />
 
-    <article v-if="mockTask" class="detail-panel">
+    <p v-if="pending" class="empty-message">読み込み中...</p>
+
+    <section v-else-if="error" class="empty-message">
+      <h2>タスクの取得に失敗しました</h2>
+      <p>{{ error.message }}</p>
+      <NuxtLink class="secondary-link" to="/tasks">一覧へ戻る</NuxtLink>
+    </section>
+
+    <article v-else-if="displayTask" class="detail-panel">
       <header class="detail-header">
-        <p class="detail-id">Task #{{ mockTask.id }}</p>
-        <h2>{{ mockTask.title }}</h2>
+        <p class="detail-id">Task #{{ displayTask.id }}</p>
+        <h2>{{ displayTask.title }}</h2>
 
         <ul class="detail-badges" aria-label="タスク属性">
-          <li :class="['status-badge', statusClass]">{{ mockTask.status }}</li>
+          <li :class="['status-badge', statusClass]">{{ displayTask.status }}</li>
           <li :class="['priority-badge', priorityClass]">
-            優先度 {{ mockTask.priority }}
+            優先度 {{ displayTask.priority }}
           </li>
         </ul>
       </header>
 
       <section class="detail-section" aria-labelledby="detail-description">
         <h3 id="detail-description">説明</h3>
-        <p>{{ mockTask.description }}</p>
+        <p>{{ displayTask.description }}</p>
       </section>
 
       <dl class="detail-list">
         <dt>担当者</dt>
-        <dd>{{ mockTask.assignee }}</dd>
+        <dd>{{ displayTask.assignee }}</dd>
 
         <dt>カテゴリ</dt>
-        <dd>{{ mockTask.category }}</dd>
+        <dd>{{ displayTask.category }}</dd>
 
         <dt>期限</dt>
-        <dd>{{ mockTask.dueDate }}</dd>
+        <dd>{{ displayTask.dueDate }}</dd>
 
         <dt>作成日</dt>
-        <dd>{{ mockTask.createdAt }}</dd>
+        <dd>{{ displayTask.createdAt }}</dd>
 
         <dt>更新日</dt>
-        <dd>{{ mockTask.updatedAt }}</dd>
+        <dd>{{ displayTask.updatedAt }}</dd>
       </dl>
 
       <section class="checklist-section" aria-labelledby="task-checklist">
         <header class="checklist-header">
           <h3 id="task-checklist">チェックリスト</h3>
-          <p>{{ checklistProgress.done }} / {{ checklistProgress.total }} 完了</p>
+          <p>
+            {{ checklistProgress.done }} / {{ checklistProgress.total }} 完了
+          </p>
         </header>
 
         <ul class="checklist">
           <li
-            v-for="item in mockTask.checklist"
+            v-for="item in displayTask.checklist"
             :key="item.label"
             :class="{ 'checklist-item--done': item.done }"
           >
