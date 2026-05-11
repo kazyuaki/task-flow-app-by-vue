@@ -6,6 +6,10 @@ defineProps<{
   actionLabel?: string;
   actionTo?: string;
   actionVariant?: "primary" | "secondary";
+
+  secondaryActionLabel?: string;
+  secondaryActionTo?: string;
+  secondaryActionVariant?: "primary" | "secondary";
 }>();
 </script>
 
@@ -15,14 +19,29 @@ defineProps<{
       <p class="eyebrow">{{ eyebrow }}</p>
       <h1>{{ title }}</h1>
     </div>
+    <div class="action-group">
+      <NuxtLink
+        v-if="secondaryActionLabel && secondaryActionTo"
+        :class="[
+          'action-link',
+          `action-link--${secondaryActionVariant || 'secondary'}`,
+        ]"
+        :to="secondaryActionTo"
+      >
+        {{ secondaryActionLabel }}
+      </NuxtLink>
 
-    <NuxtLink
-      v-if="actionLabel && actionTo"
-      :class="['action-link', `action-link--${actionVariant || 'primary'}`]"
-      :to="actionTo"
-    >
-      {{ actionLabel }}
-    </NuxtLink>
+      <NuxtLink
+        v-if="actionLabel && actionTo"
+        :class="[
+          'action-link',
+          `action-link--${actionVariant || 'primary'}`,
+        ]"
+        :to="actionTo"
+      >
+        {{ actionLabel }}
+      </NuxtLink>
+    </div>
   </section>
 </template>
 
@@ -42,6 +61,12 @@ defineProps<{
   font-size: 12px;
   font-weight: 700;
   text-transform: uppercase;
+}
+
+.action-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
 .page-header h1 {

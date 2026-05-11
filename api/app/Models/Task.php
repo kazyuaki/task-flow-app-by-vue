@@ -8,12 +8,16 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 #[Fillable(['user_id', 'category_id', 'title', 'description', 'status', 'priority', 'due_date'])]
 class Task extends Model
 {
     /** @use HasFactory<TaskFactory> */
     use HasFactory;
+
+    use SoftDeletes;
+
     // ステータス定数
     public const STATUS_PENDING = 0; // 0: 未着手
     public const STATUS_IN_PROGRESS = 1; // 1: 進行中
