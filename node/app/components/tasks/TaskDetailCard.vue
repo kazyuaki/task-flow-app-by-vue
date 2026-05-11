@@ -8,7 +8,16 @@ import type { TaskDetail } from "~/types/task";
 
 const props = defineProps<{
   task: TaskDetail;
+  isDeleting: boolean;
 }>();
+
+const emit = defineEmits<{
+  delete: [taskId: number];
+}>();
+
+const handleDeleteClick = () => {
+  emit("delete", props.task.id);
+};
 
 // --- クラス名の算出 ---
 const statusClass = computed(() => STATUS_CLASS_MAP[props.task.status] || "");
@@ -30,7 +39,6 @@ const toggleChecklist = (id: number) => {
   console.log("チェックリストの状態が変更されました:", localChecklist.value);
 };
 
-
 // --- チェックリストの進捗計算 ---
 const checklistProgress = computed(() => {
   const done = localChecklist.value.filter((item) => item.done).length;
@@ -40,7 +48,6 @@ const checklistProgress = computed(() => {
     total: localChecklist.value.length,
   };
 });
-
 </script>
 
 <template>
@@ -91,24 +98,35 @@ const checklistProgress = computed(() => {
           :key="item.id"
           :class="{ 'checklist-item--done': item.done }"
         >
-        <label class="checklist-label">
-          <input 
-          type="checkbox"
-          :checked="item.done"
-          class="checklist-input"
-          @change="toggleChecklist(item.id)"
-          >
-          <span class="checkmark" aria-hidden="true">
-            {{ item.done ? "✔︎" : "" }}
-          </span>
-          <span>{{ item.label }}</span>
-        </label>
+          <label class="checklist-label">
+            <input
+              type="checkbox"
+              :checked="item.done"
+              class="checklist-input"
+              @change="toggleChecklist(item.id)"
+            />
+            <span class="checkmark" aria-hidden="true">
+              {{ item.done ? "✔︎" : "" }}
+            </span>
+            <span>{{ item.label }}</span>
+          </label>
         </li>
       </ul>
     </section>
 
     <footer class="detail-actions">
-      <NuxtLink class="primary-link" to="/tasks/create">新規作成</NuxtLink>
+      <NuxtLink class="secondary-link" :to="`/tasks/${task.id}/edit`">
+        編集
+      </NuxtLink>
+
+      <button
+        class="danger-button"
+        type="button"
+        :disabled="isDeleting"
+        @click="handleDeleteClick"
+      >
+        {{ isDeleting ? "削除中..." : "削除" }}
+      </button>
     </footer>
   </article>
 </template>
@@ -348,10 +366,35 @@ const checklistProgress = computed(() => {
   background: #fff;
 }
 
-.primary-link {
+.danger-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 42px;
+  padding: 0 16px;
+  border: none;
+  border-radius: 8px;
   color: #fff;
-  background: #2d6a4f;
-  box-shadow: 0 8px 18px rgba(45, 106, 79, 0.22);
+  font-size: 15px;
+  font-weight: 800;
+  background: #b42318;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.danger-button:hover {
+  background: #912018;
+  border-color: #f0a39b;
+  transform: translateY(-1px);
+}
+
+.danger-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
 }
 
 @media (max-width: 640px) {
@@ -365,7 +408,7 @@ const checklistProgress = computed(() => {
   }
 
   .secondary-link,
-  .primary-link {
+  .danger-button {
     width: 100%;
   }
 }
