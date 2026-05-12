@@ -23,6 +23,7 @@ export const useTaskDetail = async (taskId: number) => {
     error,
   } = await useFetch<ApiTaskDetail>(`/api/tasks/${taskId}`, {
     baseURL: apiBaseUrl,
+    key: `task-detail-${taskId}`,
   });
 
   // --- 表示用のデータ整形 ---

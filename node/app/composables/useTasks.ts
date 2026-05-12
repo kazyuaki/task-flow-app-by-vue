@@ -15,6 +15,7 @@ export const useTasks = async () => {
     "/api/tasks",
     {
       baseURL: apiBaseUrl,
+      key: "tasks",
     },
   );
 
