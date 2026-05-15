@@ -4,11 +4,25 @@ import AppHeader from "~/components/layouts/AppHeader.vue";
 import PageTitle from "~/components/common/PageTitle.vue";
 import TaskDetailStateMessage from "~/components/tasks/TaskDetailStateMessage.vue";
 import TaskEditForm from "~/components/tasks/TaskEditForm.vue";
+import type { UpdateTaskPayload } from "~/types/task";
 
 const route = useRoute();
 
 const taskId = Number(route.params.id);
 const { displayTask, pending, error } = await useTaskDetail(taskId);
+
+/* タスク更新のハンドラー */
+const handleUpdate = async (payload: UpdateTaskPayload) => {
+  console.log("更新payload:", payload);
+  
+  try {
+    await useTaskUpdate(payload);
+    await navigateTo(`/tasks/${taskId}`);
+  } catch (err) {
+    console.error("タスクの更新に失敗しました:", err);
+    alert("タスクの更新に失敗しました。もう一度お試しください。");
+  }
+};
 </script>
 
 <template>
@@ -33,8 +47,11 @@ const { displayTask, pending, error } = await useTaskDetail(taskId);
       message="タスクの読み込みに失敗しました。"
     />
 
-    <section v-else-if="displayTask"">
-      <TaskEditForm :task="displayTask" />
+    <section v-else-if="displayTask">
+      <TaskEditForm 
+        :task="displayTask" 
+        @submit="handleUpdate"
+      />
     </section>
 
 

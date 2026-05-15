@@ -3,12 +3,15 @@
 
 <script setup lang="ts">
 import { reactive } from "vue";
-import type { TaskDetail } from "~/types/task";
+import type { TaskDetail, UpdateTaskPayload } from "~/types/task";
 
 const props = defineProps<{
   task: TaskDetail;
 }>();
 
+const emit = defineEmits<{ submit: [payload: UpdateTaskPayload] }>();
+
+/* フォームの状態をリアクティブに管理 */
 const form = reactive({
   title: props.task.title,
   description: props.task.description,
@@ -16,23 +19,48 @@ const form = reactive({
   priority: props.task.priority,
   assignee: props.task.assignee,
   category: props.task.category,
-  dueDate: props.task.dueDate === "未設定" ? "" : props.task.dueDate,
+  dueDate: props.task.dueDateInput,
   checklist: [...props.task.checklist],
 });
 
+/* チェックリスト項目の追加 */
 const addChecklistItem = () => {
   form.checklist.push({
-    id: Date.now(),
+    id: null,
+    tempId: Date.now(),
     label: "",
     done: false,
   });
 };
+/* チェックリスト項目の削除 */
+const removeChecklistItem = (id: number | null, tempId?: number) => {
+  form.checklist = form.checklist.filter((item) => {
+    if (tempId !== undefined) return item.tempId !== tempId;
 
-const removeChecklistItem = (id: number) => {
-  form.checklist = form.checklist.filter((item) => item.id !== id);
+    return item.id !== id;
+  });
 };
 
+/* フォーム送信のハンドラー */
 const handleSubmit = () => {
+  const payload: UpdateTaskPayload = {
+    id: props.task.id,
+    categoryId: props.task.categoryId,
+    title: form.title,
+    description: form.description,
+    status: form.status,
+    priority: form.priority,
+    assignee: form.assignee,
+    category: form.category,
+    dueDate: form.dueDate,
+    checklist: form.checklist.map((item) => ({
+      id: item.id,
+      label: item.label,
+      done: item.done,
+    })),
+  };
+
+  emit("submit", payload);
   console.log("編集フォーム送信:", form);
 };
 </script>
@@ -101,7 +129,11 @@ const handleSubmit = () => {
         </button>
       </div>
 
-      <div v-for="item in form.checklist" :key="item.id" class="checklist-row">
+      <div
+        v-for="item in form.checklist"
+        :key="item.tempId ?? item.id ?? undefined"
+        class="checklist-row"
+      >
         <input
           v-model="item.label"
           type="text"
@@ -112,7 +144,7 @@ const handleSubmit = () => {
         <button
           type="button"
           class="remove-button"
-          @click="removeChecklistItem(item.id)"
+          @click="removeChecklistItem(item.id, item.tempId)"
         >
           削除
         </button>

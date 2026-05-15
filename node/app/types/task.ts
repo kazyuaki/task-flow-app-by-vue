@@ -47,23 +47,43 @@ export type Task = {
 };
 
 export type ChecklistItem = {
-  id: number;
+  id: number | null;
+  tempId?: number; // 新規追加アイテム用の一時ID
   label: string;
   done: boolean;
 };
 
 export type TaskDetail = {
   id: number;
+  categoryId: number | null;
   title: string;
   description: string;
   status: string;
   priority: string;
   category: string;
   dueDate: string;
+  dueDateInput: string;
   assignee: string;
   createdAt: string;
   updatedAt: string;
   checklist: ChecklistItem[];
+};
+
+export type UpdateTaskPayload = {
+  id: number;
+  categoryId: number | null;
+  title: string;
+  description: string;
+  status: string;
+  priority: string;
+  assignee: string;
+  category: string;
+  dueDate: string;
+  checklist: {
+    id: number | null;
+    label: string;
+    done: boolean;
+  }[];
 };
 
 /* ------------------------------
