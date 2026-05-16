@@ -1,3 +1,13 @@
+<!-- AppHeader.vue -->  
+<!-- アプリ全体のヘッダーコンポーネント -->
+
+<script setup lang="ts">
+const route = useRoute();
+
+const isTasksPage = computed(() => route.path === "/tasks");
+const isCreatePage = computed(() => route.path === "/tasks/create");
+</script>
+
 <template>
   <header class="site-header">
     <NuxtLink class="brand" to="/tasks">
@@ -5,8 +15,8 @@
       <span>Task Flow</span>
     </NuxtLink>
     <nav class="header-nav" aria-label="メインナビゲーション">
-      <NuxtLink to="/tasks">タスク一覧</NuxtLink>
-      <NuxtLink to="/tasks/create">新規作成</NuxtLink>
+      <NuxtLink v-if="!isTasksPage" to="/tasks">タスク一覧</NuxtLink>
+      <NuxtLink v-if="!isCreatePage" to="/tasks/create">新規作成</NuxtLink>
     </nav>
   </header>
 </template>
