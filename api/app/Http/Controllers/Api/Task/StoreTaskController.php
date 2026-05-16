@@ -5,31 +5,26 @@ namespace App\Http\Controllers\Api\Task;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreTaskRequest;
 use App\Models\Task;
+use App\Services\TaskChecklistService;
 
 class StoreTaskController extends Controller
 {
     /**
-     * Handle the incoming request.
+     * 新しいタスクを保存する
      */
-    public function __invoke(StoreTaskRequest $request)
+    public function __invoke(StoreTaskRequest $request, TaskChecklistService $taskChecklistService)
     {
         $validated = $request->validated();
 
         $checklist = $validated['checklist'] ?? [];
         unset($validated['checklist']);
 
-        $task = Task::create($request->validated());
+        $task = Task::create($validated);
 
-        foreach ($checklist as $index => $item) {
-            $task->checklists()->create([
-                'label' => $item['label'],
-                'done' => $item['done'] ?? false,
-                'sort_order' => $item['sort_order'] ?? $index + 1,
-            ]);
-        }
+        $taskChecklistService->createMany($task, $checklist);
 
         return response()->json([
-            'data' => $task,
+            'data' => $task->load('checklists'),
         ], 201);
     }
 }

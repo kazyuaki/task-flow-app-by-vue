@@ -9,7 +9,7 @@ use Illuminate\Http\Request;
 class GetTaskListController extends Controller
 {
     /**
-     * Handle the incoming request.
+     * タスクの一覧を取得する
      */
     public function __invoke(Request $request)
     {
