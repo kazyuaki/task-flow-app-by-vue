@@ -3,6 +3,7 @@
 
 <script setup lang="ts">
 import { reactive } from "vue";
+import { TASK_CATEGORIES } from "~/constants/task";
 import type { TaskDetail, UpdateTaskPayload } from "~/types/task";
 
 const props = defineProps<{
@@ -10,6 +11,7 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{ submit: [payload: UpdateTaskPayload] }>();
+const categories = TASK_CATEGORIES;
 
 /* フォームの状態をリアクティブに管理 */
 const form = reactive({
@@ -107,7 +109,15 @@ const handleSubmit = () => {
 
       <label class="form-field">
         <span>カテゴリ</span>
-        <input v-model="form.category" type="text" />
+        <select v-model="form.category">
+          <option
+            v-for="category in categories"
+            :key="category"
+            :value="category"
+          >
+            {{ category }}
+          </option>
+        </select>
       </label>
 
       <label class="form-field">

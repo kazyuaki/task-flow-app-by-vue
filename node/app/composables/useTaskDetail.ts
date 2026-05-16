@@ -41,11 +41,11 @@ export const useTaskDetail = async (taskId: number) => {
       categoryId: task.value.category_id,
       title: task.value.title,
       description: task.value.description || "説明は未設定です。",
-      status: STATUS_LABELS[task.value.status] || "不明",
+      status: STATUS_LABELS[task.value.status] || "未着手",
       priority:
         task.value.priority === null || task.value.priority === undefined
-          ? "未設定"
-          : PRIORITY_LABELS[task.value.priority] || "不明",
+          ? "中"
+          : PRIORITY_LABELS[task.value.priority] || "中",
       category: task.value.category?.name || "未分類",
       dueDate: formatDisplayDate(task.value.due_date),
       dueDateInput: formatInputDate(task.value.due_date),

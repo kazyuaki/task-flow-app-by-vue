@@ -17,6 +17,8 @@ const handleUpdate = async (payload: UpdateTaskPayload) => {
   
   try {
     await useTaskUpdate(payload);
+    clearNuxtData(`task-detail-${taskId}`);
+    clearNuxtData("tasks");
     await navigateTo(`/tasks/${taskId}`);
   } catch (err) {
     console.error("タスクの更新に失敗しました:", err);
