@@ -7,6 +7,11 @@ use App\Models\Task;
 
 class ShowTaskController extends Controller
 {
+    /**
+     * タスク詳細情報を取得する
+     * @param Task $task
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function __invoke(Task $task)
     {
         $task->load(['category', 'checklists']);

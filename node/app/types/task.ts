@@ -4,6 +4,10 @@ export type ApiTaskResponse = {
   data: ApiTask[];
 };
 
+export type TaskStatus = "未着手" | "進行中" | "完了";
+
+export type TaskPriority = "低" | "中" | "高";
+
 /* ------------------------------
  * APIレスポンス型
  * ----------------------------- */
@@ -39,8 +43,8 @@ export type Task = {
   id: number;
   title: string;
   description: string;
-  status: string;
-  priority: string;
+  status: TaskStatus;
+  priority: TaskPriority;
   category: string;
   dueDate: string;
   dueDateTimestamp: number;
@@ -58,8 +62,8 @@ export type TaskDetail = {
   categoryId: number | null;
   title: string;
   description: string;
-  status: string;
-  priority: string;
+  status: TaskStatus;
+  priority: TaskPriority;
   category: string;
   dueDate: string;
   dueDateInput: string;
@@ -74,8 +78,8 @@ export type UpdateTaskPayload = {
   categoryId: number | null;
   title: string;
   description: string;
-  status: string;
-  priority: string;
+  status: TaskStatus;
+  priority: TaskPriority;
   assignee: string;
   category: string;
   dueDate: string;

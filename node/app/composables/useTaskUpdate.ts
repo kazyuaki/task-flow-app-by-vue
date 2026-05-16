@@ -1,5 +1,5 @@
 import type { UpdateTaskPayload } from "~/types/task";
-import { PRIORITY_VALUES, TASK_STATUSES } from "~/constants/task";
+import { PRIORITY_VALUES, TASK_CATEGORIES, TASK_STATUSES } from "~/constants/task";
 
 /** タスク更新API */
 export const useTaskUpdate = async (
@@ -25,12 +25,14 @@ export const useTaskUpdate = async (
     ? TASK_STATUSES.indexOf(payload.status)
     : 0;
   const priority = PRIORITY_VALUES[payload.priority] ?? 1;
+  const categoryIndex = TASK_CATEGORIES.indexOf(payload.category);
+  const categoryId = categoryIndex >= 0 ? categoryIndex + 1 : payload.categoryId;
 
   await $fetch(`/api/tasks/${payload.id}`, {
     method: "PUT",
     baseURL: apiBaseUrl,
     body: {
-      category_id: payload.categoryId,
+      category_id: categoryId,
       title: payload.title,
       description: payload.description,
       status,
