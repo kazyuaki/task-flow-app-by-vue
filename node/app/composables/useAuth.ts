@@ -3,6 +3,13 @@ type LoginForm = {
   password: string;
 };
 
+type RegisterForm = {
+  name: string;
+  email: string;
+  password: string;
+  password_confirmation: string;
+};
+
 type User = {
   id: number;
   name: string;
@@ -22,10 +29,16 @@ export const useAuth = () => {
 
   const user = useState<User | null>("auth.user", () => null);
   const loading = useState<boolean>("auth.loading", () => false);
-  const isAuthenticated = useState<boolean>("auth.isAuthenticated", () => false);
+  const isAuthenticated = useState<boolean>(
+    "auth.isAuthenticated",
+    () => false,
+  );
   const initialized = useState<boolean>("auth.initialized", () => false);
   const fetchingUser = useState<boolean>("auth.fetchingUser", () => false);
-  const fetchUserRequestId = useState<number>("auth.fetchUserRequestId", () => 0);
+  const fetchUserRequestId = useState<number>(
+    "auth.fetchUserRequestId",
+    () => 0,
+  );
 
   // ユーザー情報を取得する関数
   const fetchUser = async (options: FetchUserOptions = {}) => {
@@ -85,7 +98,7 @@ export const useAuth = () => {
       await $api.get("/sanctum/csrf-cookie");
       await $api.post("/login", form);
       isAuthenticated.value = true;
-      fetchUser({
+      await fetchUser({
         force: true,
         clearAuthenticatedOnFail: false,
       });
@@ -105,6 +118,27 @@ export const useAuth = () => {
     await navigateTo("/login");
   };
 
+  // 会員登録処理
+  const register = async (form: RegisterForm) => {
+    loading.value = true;
+
+    try {
+      await $api.get("/sanctum/csrf-cookie");
+      await $api.post("/register", form);
+
+      isAuthenticated.value = true;
+
+      await fetchUser({
+        force: true,
+        clearAuthenticatedOnFail: false,
+      });
+
+      await navigateTo("/tasks");
+    } finally {
+      loading.value = false;
+    }
+  };
+
   return {
     user,
     loading,
@@ -113,5 +147,6 @@ export const useAuth = () => {
     fetchUser,
     login,
     logout,
+    register,
   };
 };
