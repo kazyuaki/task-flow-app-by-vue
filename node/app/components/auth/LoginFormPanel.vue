@@ -1,12 +1,30 @@
 <!-- ログインフォームのパネルコンポーネント -->
+<script lang="ts" setup>
+import { reactive } from 'vue';
+
+const { login, loading } = useAuth();
+
+const form = reactive({
+  email: '',
+  password: '',
+});
+
+const handleSubmit = async () => {
+  await login({
+    email: form.email,
+    password: form.password,
+  });
+}
+</script>
 <template>
   <section class="login-panel" aria-labelledby="login-title">
     <p class="panel-label">Welcome back</p>
     <h2 id="login-title">ログイン</h2>
-    <form class="login-form">
+    <form class="login-form" @submit.prevent="handleSubmit">
       <label>
         メールアドレス
         <input
+          v-model="form.email"
           type="email"
           autocomplete="email"
           placeholder="you@example.com"
@@ -15,12 +33,16 @@
       <label>
         パスワード
         <input
+          v-model="form.password"
           type="password"
           autocomplete="current-password"
           placeholder="password"
         />
       </label>
-      <button type="submit">ログイン</button>
+      <button 
+        type="submit"
+        :disabled="loading"
+      >ログイン</button>
     </form>
   </section>
 </template>

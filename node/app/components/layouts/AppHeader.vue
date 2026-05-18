@@ -4,8 +4,12 @@
 <script setup lang="ts">
 const route = useRoute();
 
+const { isAuthenticated, logout } = useAuth();
 const isTasksPage = computed(() => route.path === "/tasks");
 const isCreatePage = computed(() => route.path === "/tasks/create");
+const handleLogout = async () => {
+  await logout();
+};
 </script>
 
 <template>
@@ -17,6 +21,9 @@ const isCreatePage = computed(() => route.path === "/tasks/create");
     <nav class="header-nav" aria-label="メインナビゲーション">
       <NuxtLink v-if="!isTasksPage" to="/tasks">タスク一覧</NuxtLink>
       <NuxtLink v-if="!isCreatePage" to="/tasks/create">新規作成</NuxtLink>
+      <button v-if="isAuthenticated" class="logout-button" @click="handleLogout">
+        ログアウト
+      </button>
     </nav>
   </header>
 </template>
@@ -57,6 +64,22 @@ const isCreatePage = computed(() => route.path === "/tasks/create");
   display: flex;
   align-items: center;
   gap: 18px;
+}
+
+.logout-button {
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: #485164;
+  font-size: 14px;
+  font-weight: 700;
+  font-family: inherit;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.logout-button:hover {
+  opacity: 0.8;
 }
 
 .header-nav a {

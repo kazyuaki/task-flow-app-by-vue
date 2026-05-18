@@ -12,6 +12,7 @@ export const useTaskDelete = () => {
         await $fetch(`/api/tasks/${taskId}`, {
             method: "DELETE",
             baseURL: apiBaseUrl,
+            credentials: "include",
         });
     }
     return {

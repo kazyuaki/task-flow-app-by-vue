@@ -8,7 +8,7 @@ export const TASK_CATEGORIES = [
   "ドキュメント",
 ] as const;
 
-export const TASK_PRIORITIES = ["高", "中", "低"] as const;
+export const TASK_PRIORITIES = ["低", "中", "高"] as const;
 
 export const STATUS_LABELS = {
   0: "未着手",

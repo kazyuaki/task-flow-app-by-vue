@@ -1,9 +1,11 @@
 <!-- タスク一覧のフィルターパネル -->
 <script setup lang="ts">
+import type { TASK_CATEGORIES, TASK_PRIORITIES, TASK_STATUSES } from '~/constants/task';
+
 defineProps<{
-  statuses: string[];
-  categories: string[];
-  priorities: string[];
+  statuses: typeof TASK_STATUSES;
+  categories: typeof TASK_CATEGORIES;
+  priorities: typeof TASK_PRIORITIES;
 }>();
 
 const keyword = defineModel<string>("keyword", { required: true });
