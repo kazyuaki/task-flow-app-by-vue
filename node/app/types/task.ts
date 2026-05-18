@@ -1,12 +1,36 @@
 /** タスクAPI・表示用の型定義 */
 
+import type { T } from "vue-router/dist/router-CWoNjPRp.mjs";
+import type {
+  TASK_CATEGORIES,
+  TASK_PRIORITIES,
+  TASK_STATUSES,
+} from "~/constants/task";
+
 export type ApiTaskResponse = {
   data: ApiTask[];
 };
 
-export type TaskStatus = "未着手" | "進行中" | "完了";
+export type TaskStatus = (typeof TASK_STATUSES)[number];
 
-export type TaskPriority = "低" | "中" | "高";
+export type TaskPriority = (typeof TASK_PRIORITIES)[number];
+
+export type TaskCategory = (typeof TASK_CATEGORIES)[number];
+
+export type TaskFormChecklistItem = {
+  label: string;
+  done: boolean;
+};
+
+export type TaskCreateForm = {
+  title: string;
+  description: string;
+  status: TaskStatus;
+  priority: TaskPriority;
+  category: TaskCategory;
+  dueDate: string;
+  checklist: TaskFormChecklistItem[];
+};
 
 /* ------------------------------
  * APIレスポンス型
@@ -45,7 +69,7 @@ export type Task = {
   description: string;
   status: TaskStatus;
   priority: TaskPriority;
-  category: string;
+  category: TaskCategory;
   dueDate: string;
   dueDateTimestamp: number;
 };
@@ -64,7 +88,7 @@ export type TaskDetail = {
   description: string;
   status: TaskStatus;
   priority: TaskPriority;
-  category: string;
+  category: TaskCategory;
   dueDate: string;
   dueDateInput: string;
   assignee: string;
@@ -81,13 +105,9 @@ export type UpdateTaskPayload = {
   status: TaskStatus;
   priority: TaskPriority;
   assignee: string;
-  category: string;
+  category: TaskCategory;
   dueDate: string;
-  checklist: {
-    id: number | null;
-    label: string;
-    done: boolean;
-  }[];
+  checklist: Pick<ChecklistItem, "id" | "label" | "done">[];
 };
 
 /* ------------------------------

@@ -1,13 +1,10 @@
 <!-- components/tasks/TaskCreateChecklistFields.vue -->
 <!-- タスク作成フォームのチェックリスト入力欄 -->
 <script setup lang="ts">
-type ChecklistItem = {
-  label: string;
-  done: boolean;
-};
+import type { TaskFormChecklistItem } from "~/types/task";
 
 const props = defineProps<{
-  checklist: ChecklistItem[];
+  checklist: TaskFormChecklistItem[];
   errors: Record<string, string[]>;
   touched: Record<string, boolean>;
   submitted: boolean;

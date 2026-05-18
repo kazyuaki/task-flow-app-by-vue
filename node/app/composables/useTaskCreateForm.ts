@@ -7,6 +7,7 @@ import {
   TASK_PRIORITIES,
   TASK_STATUSES,
 } from "~/constants/task";
+import type { TaskCreateForm } from "~/types/task";
 
 export const useTaskCreateForm = () => {
   const statuses = TASK_STATUSES;
@@ -25,7 +26,7 @@ export const useTaskCreateForm = () => {
   const errors = reactive<Record<string, string[]>>({});
 
   // フォームの状態管理
-  const form = reactive({
+  const form = reactive<TaskCreateForm>({
     title: "",
     description: "",
     status: "未着手",
