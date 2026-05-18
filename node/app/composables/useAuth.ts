@@ -1,25 +1,9 @@
-type LoginForm = {
-  email: string;
-  password: string;
-};
-
-type RegisterForm = {
-  name: string;
-  email: string;
-  password: string;
-  password_confirmation: string;
-};
-
-type User = {
-  id: number;
-  name: string;
-  email: string;
-};
-
-type FetchUserOptions = {
-  force?: boolean;
-  clearAuthenticatedOnFail?: boolean;
-};
+import type {
+  FetchUserOptions,
+  LoginForm,
+  RegisterForm,
+  User,
+} from "~/types/auth";
 
 /**
  * 認証関連のロジックを提供するカスタムフック
