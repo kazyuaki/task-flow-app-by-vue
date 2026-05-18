@@ -1,26 +1,33 @@
-<!-- ログインフォームのパネルコンポーネント -->
-<script lang="ts" setup>
-import { reactive } from 'vue';
+<!-- 会員登録フォームのパネルコンポーネント -->
 
-const { login, loading } = useAuth();
-
+<script setup lang="ts">
+import { reactive } from "vue";
 const form = reactive({
-  email: '',
-  password: '',
+  name: "",
+  email: "",
+  password: "",
+  password_confirmation: "",
 });
 
 const handleSubmit = async () => {
-  await login({
-    email: form.email,
-    password: form.password,
-  });
-}
+  console.log(form);
+};
 </script>
 <template>
-  <section class="login-panel" aria-labelledby="login-title">
-    <p class="panel-label">Welcome back</p>
-    <h2 id="login-title">ログイン</h2>
-    <form class="login-form" @submit.prevent="handleSubmit">
+  <section class="register-panel aria-labelledby=register-title">
+    <p class="panel-label">Create account</p>
+    <h2 id="regsiter-title">会員登録</h2>
+
+    <form class="register-form" @submit.prevent="handleSubmit">
+      <label>
+        名前
+        <input
+          v-model="form.name"
+          type="text"
+          autocomplete="name"
+          placeholder="山本 太郎"
+        />
+      </label>
       <label>
         メールアドレス
         <input
@@ -35,35 +42,39 @@ const handleSubmit = async () => {
         <input
           v-model="form.password"
           type="password"
-          autocomplete="current-password"
+          autocomplete="new-password"
           placeholder="password"
         />
       </label>
-      <button 
-        type="submit"
-        :disabled="loading"
-      >ログイン</button>
-      <NuxtLink
-        to="/register"
-        class="register-link"
-       >会員登録はこちら</NuxtLink>
+      <label>
+        パスワード（確認）
+        <input
+          v-model="form.password_confirmation"
+          type="password"
+          autocomplete="new-password"
+          placeholder="password"
+        />
+      </label>
+      <button type="submit">登録する</button>
+      <NuxtLink to="/login" class="login-link"
+        >すでにアカウントをお持ちの方はこちら
+      </NuxtLink>
     </form>
   </section>
 </template>
 
 <style scoped>
-.login-panel {
+.register-panel {
   width: 100%;
   padding: 32px;
   background: rgba(255, 255, 255, 0.86);
   border: 1px solid rgba(23, 32, 51, 0.1);
   border-radius: 8px;
-  box-shadow: 0 24px 70px rgba(24, 39, 75, 0.12);
 }
 
-.login-panel h2 {
-  margin: 0 0 24px;
-  font-size: 30px;
+.register-panel h2 {
+  margin: 8px 0 24px;
+  font-size: 24px;
 }
 
 .panel-label {
@@ -71,11 +82,10 @@ const handleSubmit = async () => {
   color: #2d6a4f;
   font-size: 13px;
   font-weight: 800;
-  letter-spacing: 0;
   text-transform: uppercase;
 }
 
-.login-form {
+.register-form {
   display: grid;
   gap: 16px;
 }
@@ -124,19 +134,19 @@ button:hover {
   transform: translateY(-1px);
 }
 
-.register-link {
+.login-link {
   justify-self: center;
   color: #2d6a4f;
   font-size: 14px;
   font-weight: 800;
 }
 
-.signup-link:hover {
+.login-link:hover {
   text-decoration: underline;
 }
 
 @media (max-width: 760px) {
-  .login-panel {
+  .register-panel {
     padding: 24px;
   }
 }
