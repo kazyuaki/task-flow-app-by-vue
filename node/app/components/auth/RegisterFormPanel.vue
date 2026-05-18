@@ -2,6 +2,9 @@
 
 <script setup lang="ts">
 import { reactive } from "vue";
+
+const { register, loading } = useAuth();
+
 const form = reactive({
   name: "",
   email: "",
@@ -10,6 +13,12 @@ const form = reactive({
 });
 
 const handleSubmit = async () => {
+  await register({
+    name: form.name,
+    email: form.email,
+    password: form.password,
+    password_confirmation: form.password_confirmation,
+  });
   console.log(form);
 };
 </script>
