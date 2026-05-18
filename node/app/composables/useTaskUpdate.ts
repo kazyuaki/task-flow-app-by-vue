@@ -10,6 +10,7 @@ export const useTaskUpdate = async (
     ? "http://nginx"
     : String(config.public.apiBaseUrl);
 
+  // チェックリストの整形
   const checklist = payload.checklist
     .map((item) => ({
       id: item.id,
@@ -21,6 +22,7 @@ export const useTaskUpdate = async (
       ...item,
       sort_order: index + 1,
     }));
+  
   const status = TASK_STATUSES.includes(payload.status)
     ? TASK_STATUSES.indexOf(payload.status)
     : 0;
@@ -28,6 +30,7 @@ export const useTaskUpdate = async (
   const categoryIndex = TASK_CATEGORIES.indexOf(payload.category);
   const categoryId = categoryIndex >= 0 ? categoryIndex + 1 : payload.categoryId;
 
+  // APIリクエスト
   await $fetch(`/api/tasks/${payload.id}`, {
     method: "PUT",
     baseURL: apiBaseUrl,

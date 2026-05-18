@@ -1,17 +1,9 @@
+import type { TaskCreateForm, TaskPriority, TaskStatus } from "~/types/task";
+
 type ValidateTaskFormParams = {
-  form: {
-    title: string;
-    description: string;
-    status: string;
-    priority: string;
-    dueDate: string;
-    checklist: {
-      label: string;
-      done: boolean;
-    }[];
-  };
-  statuses: readonly string[];
-  priorities: readonly string[];
+  form: TaskCreateForm;
+  statuses: readonly TaskStatus[];
+  priorities: readonly TaskPriority[];
 
   getToday: () => string;
   addError: (field: string, message: string) => void;

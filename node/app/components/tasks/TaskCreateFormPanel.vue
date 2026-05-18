@@ -5,25 +5,18 @@ import BaseSelectField from "~/components/common/BaseSelectField.vue";
 import BaseTextField from "~/components/common/BaseTextField.vue";
 import BaseTextareaField from "~/components/common/BaseTextareaField.vue";
 import TaskCreateChecklistFields from "~/components/tasks/TaskCreateChecklistFields.vue";
-
-type TaskCreateForm = {
-  title: string;
-  description: string;
-  status: string;
-  priority: string;
-  category: string;
-  dueDate: string;
-  checklist: {
-    label: string;
-    done: boolean;
-  }[];
-};
+import type {
+  TaskCategory,
+  TaskCreateForm,
+  TaskPriority,
+  TaskStatus,
+} from "~/types/task";
 
 defineProps<{
   form: TaskCreateForm;
-  statuses: readonly string[];
-  priorities: readonly string[];
-  categories: readonly string[];
+  statuses: readonly TaskStatus[];
+  priorities: readonly TaskPriority[];
+  categories: readonly TaskCategory[];
   errors: Record<string, string[]>;
   touched: Record<string, boolean>;
   submitted: boolean;
