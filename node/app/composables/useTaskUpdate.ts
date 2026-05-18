@@ -34,6 +34,7 @@ export const useTaskUpdate = async (
   await $fetch(`/api/tasks/${payload.id}`, {
     method: "PUT",
     baseURL: apiBaseUrl,
+    credentials: "include",
     body: {
       category_id: categoryId,
       title: payload.title,

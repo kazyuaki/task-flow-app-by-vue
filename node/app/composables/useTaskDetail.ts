@@ -29,6 +29,7 @@ export const useTaskDetail = async (taskId: number) => {
     error,
   } = await useFetch<ApiTaskDetail>(`/api/tasks/${taskId}`, {
     baseURL: apiBaseUrl,
+    credentials: "include",
     key: `task-detail-${taskId}`,
   });
 

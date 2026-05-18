@@ -178,6 +178,7 @@ export const useTaskCreateForm = () => {
 
       await $fetch("/api/tasks", {
         baseURL: apiBaseUrl,
+        credentials: "include",
         method: "POST",
         body: {
           user_id: 1,

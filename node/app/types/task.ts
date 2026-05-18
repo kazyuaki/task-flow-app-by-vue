@@ -1,6 +1,5 @@
 /** タスクAPI・表示用の型定義 */
 
-import type { T } from "vue-router/dist/router-CWoNjPRp.mjs";
 import type {
   TASK_CATEGORIES,
   TASK_PRIORITIES,
