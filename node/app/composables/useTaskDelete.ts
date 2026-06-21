@@ -2,20 +2,14 @@
 
 /* タスク削除用Composable */
 export const useTaskDelete = () => {
-    const config = useRuntimeConfig();
+  const { $api } = useNuxtApp();
 
-    const apiBaseUrl = process.server
-        ? "http://nginx"
-        : String(config.public.apiBaseUrl);
-    
-    const deleteTask = async (taskId: number) => {
-        await $fetch(`/api/tasks/${taskId}`, {
-            method: "DELETE",
-            baseURL: apiBaseUrl,
-            credentials: "include",
-        });
-    }
-    return {
-        deleteTask,
-    };
-}
+  const deleteTask = async (taskId: number) => {
+    await $api.get("/sanctum/csrf-cookie");
+    await $api.delete(`/api/tasks/${taskId}`);
+  };
+
+  return {
+    deleteTask,
+  };
+};

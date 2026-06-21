@@ -5,10 +5,7 @@ import { PRIORITY_VALUES, TASK_CATEGORIES, TASK_STATUSES } from "~/constants/tas
 export const useTaskUpdate = async (
   payload: UpdateTaskPayload,
 ): Promise<void> => {
-  const config = useRuntimeConfig();
-  const apiBaseUrl = process.server
-    ? "http://nginx"
-    : String(config.public.apiBaseUrl);
+  const { $api } = useNuxtApp();
 
   // チェックリストの整形
   const checklist = payload.checklist
@@ -31,18 +28,14 @@ export const useTaskUpdate = async (
   const categoryId = categoryIndex >= 0 ? categoryIndex + 1 : payload.categoryId;
 
   // APIリクエスト
-  await $fetch(`/api/tasks/${payload.id}`, {
-    method: "PUT",
-    baseURL: apiBaseUrl,
-    credentials: "include",
-    body: {
-      category_id: categoryId,
-      title: payload.title,
-      description: payload.description,
-      status,
-      priority,
-      due_date: payload.dueDate || null,
-      checklist,
-    },
+  await $api.get("/sanctum/csrf-cookie");
+  await $api.put(`/api/tasks/${payload.id}`, {
+    category_id: categoryId,
+    title: payload.title,
+    description: payload.description,
+    status,
+    priority,
+    due_date: payload.dueDate || null,
+    checklist,
   });
 };

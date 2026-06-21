@@ -10,13 +10,10 @@ import {
 import type { TaskCreateForm } from "~/types/task";
 
 export const useTaskCreateForm = () => {
+  const { $api } = useNuxtApp();
   const statuses = TASK_STATUSES;
   const priorities = TASK_PRIORITIES;
   const categories = TASK_CATEGORIES;
-
-  const config = useRuntimeConfig();
-
-  const apiBaseUrl = process.server ? "http://nginx" : config.public.apiBaseUrl;
 
   const isSubmitting = ref(false);
   const generalError = ref("");
@@ -114,16 +111,23 @@ export const useTaskCreateForm = () => {
   // サーバーからのエラーレスポンスをフォームに反映する関数
   const applyServerErrors = (error: unknown) => {
     const response = error as {
+      response?: {
+        data?: {
+          message?: string;
+          errors?: Record<string, string[]>;
+        };
+      };
       data?: {
         message?: string;
         errors?: Record<string, string[]>;
       };
     };
-    const serverErrors = response.data?.errors;
+    const errorData = response.response?.data ?? response.data;
+    const serverErrors = errorData?.errors;
 
     if (!serverErrors) {
       generalError.value =
-        response.data?.message || "タスクの作成に失敗しました。";
+        errorData?.message || "タスクの作成に失敗しました。";
       return;
     }
 
@@ -176,24 +180,20 @@ export const useTaskCreateForm = () => {
         }))
         .filter((item) => item.label);
 
-      await $fetch("/api/tasks", {
-        baseURL: apiBaseUrl,
-        credentials: "include",
-        method: "POST",
-        body: {
-          user_id: 1,
-          title: form.title,
-          description: form.description,
-          status: statuses.indexOf(form.status),
-          priority: PRIORITY_VALUES[form.priority],
-          category_id: categories.indexOf(form.category) + 1,
-          due_date: form.dueDate,
-          checklist: checklist.map((item, index) => ({
-            label: item.label,
-            done: item.done,
-            sort_order: index + 1,
-          })),
-        },
+      await $api.get("/sanctum/csrf-cookie");
+      await $api.post("/api/tasks", {
+        user_id: 1,
+        title: form.title,
+        description: form.description,
+        status: statuses.indexOf(form.status),
+        priority: PRIORITY_VALUES[form.priority],
+        category_id: categories.indexOf(form.category) + 1,
+        due_date: form.dueDate,
+        checklist: checklist.map((item, index) => ({
+          label: item.label,
+          done: item.done,
+          sort_order: index + 1,
+        })),
       });
       await navigateTo("/tasks");
     } catch (error) {

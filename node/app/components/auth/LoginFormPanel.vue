@@ -1,34 +1,65 @@
 <!-- ログインフォームのパネルコンポーネント -->
 <script lang="ts" setup>
-import { reactive } from 'vue';
+import { reactive, ref } from "vue";
+import { validateLoginForm } from "~/utils/validation/login";
 
 const { login, loading } = useAuth();
 
 const form = reactive({
-  email: '',
-  password: '',
+  email: "",
+  password: "",
 });
 
+const errors = reactive({
+  email: "",
+  password: "",
+});
+
+const loginError = ref("");
+
 const handleSubmit = async () => {
-  await login({
-    email: form.email,
-    password: form.password,
-  });
-}
+  loginError.value = "";
+
+  const validationErrors = validateLoginForm(form.email, form.password);
+
+  errors.email = validationErrors.email;
+  errors.password = validationErrors.password;
+
+  if (errors.email || errors.password) {
+    return;
+  }
+
+  try {
+    await login({
+      email: form.email,
+      password: form.password,
+    });
+  } catch {
+    loginError.value =
+      "メールアドレスまたはパスワードが正しくありません。";
+  }
+};
 </script>
 <template>
   <section class="login-panel" aria-labelledby="login-title">
     <p class="panel-label">Welcome back</p>
     <h2 id="login-title">ログイン</h2>
     <form class="login-form" @submit.prevent="handleSubmit">
+      <p v-if="loginError" class="form-error" role="alert">
+        {{ loginError }}
+      </p>
+
       <label>
         メールアドレス
         <input
           v-model="form.email"
           type="email"
           autocomplete="email"
-          placeholder="you@example.com"
+          placeholder="test@example.com"
         />
+        <p v-if="errors.email" class="error-message">
+          {{ errors.email }}
+        </p>
       </label>
       <label>
         パスワード
@@ -36,17 +67,14 @@ const handleSubmit = async () => {
           v-model="form.password"
           type="password"
           autocomplete="current-password"
-          placeholder="password"
+          placeholder="test1234"
         />
+        <p v-if="errors.password" class="error-message">
+          {{ errors.password }}
+        </p>
       </label>
-      <button 
-        type="submit"
-        :disabled="loading"
-      >ログイン</button>
-      <NuxtLink
-        to="/register"
-        class="register-link"
-       >会員登録はこちら</NuxtLink>
+      <button type="submit" :disabled="loading">ログイン</button>
+      <NuxtLink to="/register" class="register-link">会員登録はこちら</NuxtLink>
     </form>
   </section>
 </template>
@@ -124,6 +152,23 @@ button:hover {
   transform: translateY(-1px);
 }
 
+.error-message {
+  margin: 0;
+  color: #e03131;
+  font-size: 13px;
+}
+
+.form-error {
+  margin: 0;
+  padding: 12px 14px;
+  color: #b42318;
+  font-size: 14px;
+  font-weight: 800;
+  background: #fffbfa;
+  border: 1px solid #fda29b;
+  border-radius: 6px;
+}
+
 .register-link {
   justify-self: center;
   color: #2d6a4f;
@@ -131,7 +176,7 @@ button:hover {
   font-weight: 800;
 }
 
-.signup-link:hover {
+.register-link:hover {
   text-decoration: underline;
 }
 
