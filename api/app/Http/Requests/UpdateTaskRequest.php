@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdateTaskRequest extends FormRequest
 {
@@ -23,14 +24,23 @@ class UpdateTaskRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'category_id' => ['nullable', 'exists:categories,id'],
+            'category_id' => [
+                'nullable',
+                Rule::exists('categories', 'id')
+                    ->where('user_id', $this->user()->id),
+            ],
             'title' => ['required', 'string', 'max:255'],
             'description' => ['required', 'string', 'max:1000'],
             'status' => ['required', 'integer'],
             'priority' => ['required', 'integer'],
             'due_date' => ['nullable', 'date'],
             'checklist' => ['nullable', 'array'],
-            'checklist.*.id' => ['nullable', 'integer', 'exists:task_checklists,id'],
+            'checklist.*.id' => [
+                'nullable',
+                'integer',
+                Rule::exists('task_checklists', 'id')
+                    ->where('task_id', $this->route('task')->id),
+            ],
             'checklist.*.label' => ['required', 'string', 'max:255'],
             'checklist.*.done' => ['boolean'],
             'checklist.*.sort_order' => ['integer'],
@@ -40,9 +50,6 @@ class UpdateTaskRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'user_id.required' => 'ユーザーIDは必須です',
-            'user_id.exists' => '存在しないユーザーです',
-
             'category_id.exists' => '存在しないカテゴリです',
 
             'title.required' => 'タイトルを入力してください',

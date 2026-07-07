@@ -4,16 +4,20 @@ namespace App\Http\Controllers\Api\Task;
 
 use App\Http\Controllers\Controller;
 use App\Models\Task;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class ShowTaskController extends Controller
 {
     /**
      * タスク詳細情報を取得する
-     * @param Task $task
-     * @return \Illuminate\Http\JsonResponse
+     *
+     * @return JsonResponse
      */
-    public function __invoke(Task $task)
+    public function __invoke(Request $request, Task $task)
     {
+        abort_unless($task->user_id === $request->user()->id, 404);
+
         $task->load(['category', 'checklists']);
 
         return response()->json([

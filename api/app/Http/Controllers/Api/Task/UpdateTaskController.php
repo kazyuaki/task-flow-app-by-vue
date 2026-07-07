@@ -10,17 +10,18 @@ use Illuminate\Support\Facades\DB;
 
 class UpdateTaskController extends Controller
 {
-    
     public function __invoke(
-        UpdateTaskRequest $request, 
+        UpdateTaskRequest $request,
         Task $task,
         TaskChecklistService $taskChecklistService
-    ){
+    ) {
+        abort_unless($task->user_id === $request->user()->id, 404);
+
         $validated = $request->validated();
 
         DB::transaction(function () use (
-            $validated, 
-            $task, 
+            $validated,
+            $task,
             $taskChecklistService
         ) {
             // タスクの更新
@@ -35,7 +36,7 @@ class UpdateTaskController extends Controller
                 $task,
                 $validated['checklist'] ?? []
             );
-        
+
         });
 
         return response()->json([
