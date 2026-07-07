@@ -36,7 +36,7 @@ services:
       - ./node:/app
       - /app/node_modules
     environment:
-      NUXT_PUBLIC_API_BASE_URL: https://taskflow-app-kazu.com/api
+      NUXT_PUBLIC_API_BASE_URL: https://taskflow-app-kazu.com
     ports:
       - "3000:3000"
     command: sh -c "npm ci && npm run build && node .output/server/index.mjs"
