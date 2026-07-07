@@ -80,7 +80,7 @@ export const useAuth = () => {
 
     try {
       await $api.get("/sanctum/csrf-cookie");
-      await $api.post("/login", form);
+      await $api.post("/api/login", form);
       isAuthenticated.value = true;
       await fetchUser({
         force: true,
@@ -95,7 +95,7 @@ export const useAuth = () => {
 
   // ログアウト処理
   const logout = async () => {
-    await $api.post("/logout");
+    await $api.post("/api/logout");
     user.value = null;
     isAuthenticated.value = false;
     initialized.value = true;
@@ -108,7 +108,7 @@ export const useAuth = () => {
 
     try {
       await $api.get("/sanctum/csrf-cookie");
-      await $api.post("/register", form);
+      await $api.post("/api/register", form);
 
       isAuthenticated.value = true;
 
