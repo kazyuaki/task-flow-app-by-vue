@@ -19,6 +19,9 @@ class StoreTaskController extends Controller
         $checklist = $validated['checklist'] ?? [];
         unset($validated['checklist']);
 
+        // 所有者はクライアントの入力ではなく認証情報から決定する。
+        $validated['user_id'] = $request->user()->id;
+
         $task = Task::create($validated);
 
         $taskChecklistService->createMany($task, $checklist);
