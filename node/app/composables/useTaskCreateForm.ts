@@ -3,17 +3,23 @@ import { validateTaskForm } from "~/utils/validation/task";
 
 import {
   PRIORITY_VALUES,
-  TASK_CATEGORIES,
   TASK_PRIORITIES,
   TASK_STATUSES,
 } from "~/constants/task";
-import type { TaskCreateForm } from "~/types/task";
+import type {
+  ApiCategory,
+  ApiCategoryResponse,
+  TaskCreateForm,
+} from "~/types/task";
 
 export const useTaskCreateForm = () => {
   const { $api } = useNuxtApp();
   const statuses = TASK_STATUSES;
   const priorities = TASK_PRIORITIES;
-  const categories = TASK_CATEGORIES;
+  const categoryRecords = ref<ApiCategory[]>([]);
+  const categories = computed(() =>
+    categoryRecords.value.map((category) => category.name),
+  );
 
   const isSubmitting = ref(false);
   const generalError = ref("");
@@ -28,7 +34,7 @@ export const useTaskCreateForm = () => {
     description: "",
     status: "未着手",
     priority: "中",
-    category: "開発",
+    category: "",
     dueDate: "",
     checklist: [
       {
@@ -55,7 +61,16 @@ export const useTaskCreateForm = () => {
 
     const isValidDueDate = !form.dueDate || form.dueDate >= getToday();
 
-    return Boolean(hasRequiredFields && isValidDueDate && !isSubmitting.value);
+    const hasCategory = categoryRecords.value.some(
+      (category) => category.name === form.category,
+    );
+
+    return Boolean(
+      hasRequiredFields &&
+        hasCategory &&
+        isValidDueDate &&
+        !isSubmitting.value,
+    );
   });
 
   // フィールドがタッチされたことを記録する関数
@@ -173,6 +188,15 @@ export const useTaskCreateForm = () => {
     isSubmitting.value = true;
 
     try {
+      const selectedCategory = categoryRecords.value.find(
+        (category) => category.name === form.category,
+      );
+
+      if (!selectedCategory) {
+        errors.category = ["カテゴリを選択してください"];
+        return;
+      }
+
       const checklist = form.checklist
         .map((item) => ({
           label: item.label.trim(),
@@ -182,12 +206,11 @@ export const useTaskCreateForm = () => {
 
       await $api.get("/sanctum/csrf-cookie");
       await $api.post("/api/tasks", {
-        user_id: 1,
         title: form.title,
         description: form.description,
         status: statuses.indexOf(form.status),
         priority: PRIORITY_VALUES[form.priority],
-        category_id: categories.indexOf(form.category) + 1,
+        category_id: selectedCategory.id,
         due_date: form.dueDate,
         checklist: checklist.map((item, index) => ({
           label: item.label,
@@ -203,6 +226,19 @@ export const useTaskCreateForm = () => {
       isSubmitting.value = false;
     }
   };
+
+  const loadCategories = async () => {
+    try {
+      const response = await $api.get<ApiCategoryResponse>("/api/categories");
+      categoryRecords.value = response.data.data;
+      form.category = categoryRecords.value[0]?.name ?? "";
+    } catch (error) {
+      generalError.value = "カテゴリの取得に失敗しました。";
+      console.error("カテゴリの取得に失敗しました:", error);
+    }
+  };
+
+  void loadCategories();
 
   return {
     categories,

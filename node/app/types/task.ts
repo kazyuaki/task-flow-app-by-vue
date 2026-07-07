@@ -10,6 +10,16 @@ export type ApiTaskResponse = {
   data: ApiTask[];
 };
 
+export type ApiCategory = {
+  id: number;
+  name: string;
+  color: string | null;
+};
+
+export type ApiCategoryResponse = {
+  data: ApiCategory[];
+};
+
 export type TaskStatus = (typeof TASK_STATUSES)[number];
 
 export type TaskPriority = (typeof TASK_PRIORITIES)[number];
