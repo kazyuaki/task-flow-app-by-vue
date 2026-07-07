@@ -1,4 +1,4 @@
-import { computed, reactive, ref } from "vue";
+import { computed, onMounted, reactive, ref } from "vue";
 import { validateTaskForm } from "~/utils/validation/task";
 
 import {
@@ -238,7 +238,7 @@ export const useTaskCreateForm = () => {
     }
   };
 
-  void loadCategories();
+  onMounted(loadCategories);
 
   return {
     categories,

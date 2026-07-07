@@ -36,7 +36,7 @@ export type TaskCreateForm = {
   description: string;
   status: TaskStatus;
   priority: TaskPriority;
-  category: TaskCategory;
+  category: TaskCategory | "";
   dueDate: string;
   checklist: TaskFormChecklistItem[];
 };

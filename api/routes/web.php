@@ -1,10 +1,11 @@
 <?php
 
+use App\Models\User;
+use App\Services\DefaultCategoryService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Route;
-use App\Models\User;
 
 Route::post('/api/login', function (Request $request) {
     $credentials = $request->validate([
@@ -29,7 +30,7 @@ Route::post('/api/logout', function (Request $request) {
     return response()->noContent();
 });
 
-Route::post('/api/register', function (Request $request) {
+Route::post('/api/register', function (Request $request, DefaultCategoryService $defaultCategoryService) {
     $data = $request->validate([
         'name' => ['required', 'string', 'max:255'],
         'email' => ['required', 'email', 'max:255', 'unique:users,email'],
@@ -41,6 +42,8 @@ Route::post('/api/register', function (Request $request) {
         'email' => $data['email'],
         'password' => Hash::make($data['password']),
     ]);
+
+    $defaultCategoryService->ensureFor($user);
 
     Auth::login($user);
     $request->session()->regenerate();

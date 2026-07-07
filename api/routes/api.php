@@ -17,19 +17,19 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // カテゴリ一覧取得
     Route::get('/categories', GetCategoryListController::class);
-    
+
     // タスク一覧取得
     Route::get('/tasks', GetTaskListController::class);
-    
+
     // タスク作成
     Route::post('/tasks', StoreTaskController::class);
-    
+
     // タスク詳細取得
     Route::get('/tasks/{task}', ShowTaskController::class);
-    
+
     // タスク更新
     Route::put('/tasks/{task}', UpdateTaskController::class);
-    
+
     // タスク削除
     Route::delete('/tasks/{task}', DeleteTaskController::class);
 

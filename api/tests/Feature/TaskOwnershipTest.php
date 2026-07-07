@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Task;
 use App\Models\User;
+use Database\Seeders\CategorySeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -70,6 +71,43 @@ class TaskOwnershipTest extends TestCase
             'title' => '他人のタスク',
             'deleted_at' => null,
         ]);
+    }
+
+    public function test_category_list_is_created_and_scoped_to_the_authenticated_user(): void
+    {
+        [$user, $otherUser] = User::factory()->count(2)->create();
+
+        $response = $this->actingAs($user)
+            ->getJson('/api/categories')
+            ->assertOk()
+            ->assertJsonCount(6, 'data')
+            ->assertJsonPath('data.0.name', '仕事');
+
+        $categoryId = $response->json('data.0.id');
+
+        $this->assertDatabaseHas('categories', [
+            'id' => $categoryId,
+            'user_id' => $user->id,
+        ]);
+        $this->assertDatabaseMissing('categories', [
+            'id' => $categoryId,
+            'user_id' => $otherUser->id,
+        ]);
+    }
+
+    public function test_category_seeder_creates_default_categories_for_each_user(): void
+    {
+        $users = User::factory()->count(2)->create();
+
+        $this->seed(CategorySeeder::class);
+
+        foreach ($users as $user) {
+            $this->assertDatabaseCount('categories', 12);
+            $this->assertDatabaseHas('categories', [
+                'user_id' => $user->id,
+                'name' => '仕事',
+            ]);
+        }
     }
 
     private function createTask(User $user, string $title): Task

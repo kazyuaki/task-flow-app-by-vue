@@ -1,5 +1,5 @@
-import type { UpdateTaskPayload } from "~/types/task";
-import { PRIORITY_VALUES, TASK_CATEGORIES, TASK_STATUSES } from "~/constants/task";
+import type { ApiCategoryResponse, UpdateTaskPayload } from "~/types/task";
+import { PRIORITY_VALUES, TASK_STATUSES } from "~/constants/task";
 
 /** タスク更新API */
 export const useTaskUpdate = async (
@@ -24,13 +24,20 @@ export const useTaskUpdate = async (
     ? TASK_STATUSES.indexOf(payload.status)
     : 0;
   const priority = PRIORITY_VALUES[payload.priority] ?? 1;
-  const categoryIndex = TASK_CATEGORIES.indexOf(payload.category);
-  const categoryId = categoryIndex >= 0 ? categoryIndex + 1 : payload.categoryId;
+
+  const categoryResponse = await $api.get<ApiCategoryResponse>("/api/categories");
+  const category = categoryResponse.data.data.find(
+    (category) => category.name === payload.category,
+  );
+
+  if (!category) {
+    throw new Error("選択したカテゴリが見つかりません。");
+  }
 
   // APIリクエスト
   await $api.get("/sanctum/csrf-cookie");
   await $api.put(`/api/tasks/${payload.id}`, {
-    category_id: categoryId,
+    category_id: category.id,
     title: payload.title,
     description: payload.description,
     status,
