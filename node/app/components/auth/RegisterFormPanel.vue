@@ -12,14 +12,49 @@ const form = reactive({
   password_confirmation: "",
 });
 
+const errors = reactive({
+  name: "",
+  email: "",
+  password: "",
+  password_confirmation: "",
+});
+
+const showPassword = ref(false);
+
+const canSubmit = computed(() => {
+  return (
+    form.name.trim() !== "" &&
+    form.email.trim() !== "" &&
+    form.password.trim() !== "" &&
+    form.password_confirmation.trim() !== ""
+  );
+});
+
 const handleSubmit = async () => {
-  await register({
-    name: form.name,
-    email: form.email,
-    password: form.password,
-    password_confirmation: form.password_confirmation,
+  Object.assign(errors, {
+    name: "",
+    email: "",
+    password: "",
+    password_confirmation: "",
   });
-  console.log(form);
+  try {
+    await register({
+      name: form.name,
+      email: form.email,
+      password: form.password,
+      password_confirmation: form.password_confirmation,
+    });
+  } catch (error: any) {
+    if (error?.response?.status === 422) {
+      const validationErrors = error.response.data.errors;
+
+      errors.name = validationErrors.name?.[0] ?? "";
+      errors.email = validationErrors.email?.[0] ?? "";
+      errors.password = validationErrors.password?.[0] ?? "";
+      errors.password_confirmation =
+        validationErrors.password_confirmation?.[0] ?? "";
+    }
+  }
 };
 </script>
 <template>
@@ -27,7 +62,7 @@ const handleSubmit = async () => {
     <p class="panel-label">Create account</p>
     <h2 id="regsiter-title">会員登録</h2>
 
-    <form class="register-form" @submit.prevent="handleSubmit">
+    <form class="register-form" novalidate @submit.prevent="handleSubmit">
       <label>
         名前
         <input
@@ -36,35 +71,54 @@ const handleSubmit = async () => {
           autocomplete="name"
           placeholder="山本 太郎"
         />
+        <p v-if="errors.name" class="error-message">
+          {{ errors.name }}
+        </p>
       </label>
       <label>
         メールアドレス
         <input
-          v-model="form.email"
+          v-model.trim="form.email"
           type="email"
           autocomplete="email"
           placeholder="you@example.com"
         />
       </label>
+      <p v-if="errors.email" class="error-message">
+        {{ errors.email }}
+      </p>
       <label>
         パスワード
         <input
           v-model="form.password"
-          type="password"
+          :type="showPassword ? 'text' : 'password'"
           autocomplete="new-password"
-          placeholder="password"
+          placeholder="8文字以上・数字を含む"
         />
+        <p v-if="errors.password" class="error-message">
+          {{ errors.password }}
+        </p>
       </label>
       <label>
         パスワード（確認）
         <input
           v-model="form.password_confirmation"
-          type="password"
+          :type="showPassword ? 'text' : 'password'"
           autocomplete="new-password"
-          placeholder="password"
+          placeholder="もう一度入力してください"
         />
+        <p v-if="errors.password_confirmation" class="error-message">
+          {{ errors.password_confirmation }}
+        </p>
       </label>
-      <button type="submit">登録する</button>
+      <label class="password-toggle">
+        <input
+          v-model="showPassword"
+          type="checkbox"
+        />
+        パスワードを表示
+      </label>
+      <button type="submit" :disabled="!canSubmit">登録する</button>
       <NuxtLink to="/login" class="login-link"
         >すでにアカウントをお持ちの方はこちら
       </NuxtLink>
@@ -127,6 +181,26 @@ input:focus {
   box-shadow: 0 0 0 4px rgba(45, 106, 79, 0.14);
 }
 
+.error-message {
+  margin: 0;
+  color: #e03131;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.password-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 400;
+  cursor: pointer;
+}
+
+.password-toggle input {
+  min-height: auto;
+}
+
 button {
   border: 0;
   color: #fff;
@@ -141,6 +215,17 @@ button {
 button:hover {
   background: #24583f;
   transform: translateY(-1px);
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+button:disabled:hover {
+  background: #2d6a4f;
+  transform: none;
 }
 
 .login-link {

@@ -16,6 +16,10 @@ import {
   TASK_PRIORITIES,
 } from "~/constants/task";
 
+definePageMeta({
+  middleware: "auth",
+});
+
 const keyword = ref("");
 const selectedStatus = ref("");
 const statuses = TASK_STATUSES;

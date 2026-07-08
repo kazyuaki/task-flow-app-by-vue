@@ -6,6 +6,10 @@ import { useTaskCreateForm } from "~/composables/useTaskCreateForm";
 import TaskCreateFormPanel from "~/components/tasks/TaskCreateFormPanel.vue";
 import TaskCreatePreview from "~/components/tasks/TaskCreatePreview.vue";
 
+definePageMeta({
+  middleware: "auth",
+});
+
 const {
   statuses,
   priorities,

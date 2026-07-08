@@ -1,6 +1,6 @@
 <!-- ログインフォームのパネルコンポーネント -->
 <script lang="ts" setup>
-import { reactive, ref } from "vue";
+import { computed, reactive, ref } from "vue";
 import { validateLoginForm } from "~/utils/validation/login";
 
 const { login, loading } = useAuth();
@@ -16,6 +16,11 @@ const errors = reactive({
 });
 
 const loginError = ref("");
+const showPassword = ref(false);
+
+const canSubmit = computed(() => {
+  return form.email.trim() !== "" && form.password.trim() !== "";
+})
 
 const handleSubmit = async () => {
   loginError.value = "";
@@ -52,7 +57,7 @@ const handleSubmit = async () => {
       <label>
         メールアドレス
         <input
-          v-model="form.email"
+          v-model.trim="form.email"
           type="email"
           autocomplete="email"
           placeholder="test@example.com"
@@ -65,7 +70,7 @@ const handleSubmit = async () => {
         パスワード
         <input
           v-model="form.password"
-          type="password"
+          :type="showPassword ? 'text' : 'password'"
           autocomplete="current-password"
           placeholder="test1234"
         />
@@ -73,7 +78,14 @@ const handleSubmit = async () => {
           {{ errors.password }}
         </p>
       </label>
-      <button type="submit" :disabled="loading">ログイン</button>
+      <label class="password-toggle">
+        <input
+          v-model="showPassword"
+          type="checkbox"
+        />
+        パスワードを表示
+      </label>
+      <button type="submit" :disabled="loading || !canSubmit">ログイン</button>
       <NuxtLink to="/register" class="register-link">会員登録はこちら</NuxtLink>
     </form>
   </section>
@@ -136,6 +148,19 @@ input:focus {
   box-shadow: 0 0 0 4px rgba(45, 106, 79, 0.14);
 }
 
+.password-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 400;
+  cursor: pointer;
+}
+
+.password-toggle input {
+  min-height: auto;
+}
+
 button {
   border: 0;
   color: #fff;
@@ -150,6 +175,17 @@ button {
 button:hover {
   background: #24583f;
   transform: translateY(-1px);
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+button:disabled:hover {
+  background: #2d6a4f;
+  transform: none;
 }
 
 .error-message {
