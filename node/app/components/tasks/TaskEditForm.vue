@@ -55,10 +55,10 @@ const {
         </select>
       </label>
 
-      <label class="form-field">
+      <!-- <label class="form-field">
         <span>担当者</span>
         <input v-model="form.assignee" type="text" />
-      </label>
+      </label> -->
 
       <label class="form-field">
         <span>カテゴリ</span>

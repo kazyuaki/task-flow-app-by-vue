@@ -70,8 +70,8 @@ const checklistProgress = computed(() => {
     </section>
 
     <dl class="detail-list">
-      <dt>担当者</dt>
-      <dd>{{ task.assignee }}</dd>
+      <!-- <dt>担当者</dt>
+      <dd>{{ task.assignee }}</dd> -->
 
       <dt>カテゴリ</dt>
       <dd>{{ task.category }}</dd>
