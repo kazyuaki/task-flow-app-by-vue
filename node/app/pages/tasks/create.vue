@@ -5,6 +5,8 @@ import PageTitle from "~/components/common/PageTitle.vue";
 import { useTaskCreateForm } from "~/composables/useTaskCreateForm";
 import TaskCreateFormPanel from "~/components/tasks/TaskCreateFormPanel.vue";
 import TaskCreatePreview from "~/components/tasks/TaskCreatePreview.vue";
+import type { TaskCategory } from "~/types/task";
+import CategoryCreateModal from "~/components/categories/CategoryCreateModal.vue";
 
 definePageMeta({
   middleware: "auth",
@@ -28,6 +30,22 @@ const {
   addChecklistItem,
   removeChecklistItem,
 } = useTaskCreateForm();
+
+const isCategoryModalOpen = ref(false);
+
+const openCategoryModal = () => {
+  isCategoryModalOpen.value = true;
+};
+
+const closeCategoryModal = () => {
+  isCategoryModalOpen.value = false;
+};
+
+const handleCategoryCreated = (category: TaskCategory) => {
+  categories.value.push(category);
+  form.category = category;
+  closeCategoryModal();
+};
 </script>
 
 <template>
@@ -60,6 +78,7 @@ const {
         @touch-field="touchField"
         @add-checklist-item="addChecklistItem"
         @remove-checklist-item="removeChecklistItem"
+        @open-category-modal="openCategoryModal"
       />
 
       <TaskCreatePreview
@@ -72,6 +91,12 @@ const {
         :checklist="form.checklist"
       />
     </section>
+
+    <CategoryCreateModal
+      :open="isCategoryModalOpen"
+      @close="closeCategoryModal"
+      @created="handleCategoryCreated"
+    />
   </main>
 </template>
 

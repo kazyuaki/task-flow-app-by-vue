@@ -32,6 +32,7 @@ const emit = defineEmits<{
   (e: "touch-field", field: string): void;
   (e: "add-checklist-item"): void;
   (e: "remove-checklist-item", index: number): void;
+  (e: "open-category-modal"): void;
 }>();
 </script>
 
@@ -85,13 +86,23 @@ const emit = defineEmits<{
           @change="emit('clear-field', 'priority')"
         />
 
-        <BaseSelectField
-          v-model="form.category"
-          label="カテゴリ"
-          :options="categories"
-          :errors="submitted ? errors.category : []"
-          @change="emit('clear-field', 'category')"
-        />
+        <div class="category-control">
+          <BaseSelectField
+            v-model="form.category"
+            label="カテゴリ"
+            :options="categories"
+            :errors="submitted ? errors.category : []"
+            @change="emit('clear-field', 'category')"
+          />
+          <button 
+            class="category-add-button" 
+            type="button"
+            aria-label="カテゴリを追加"
+            @click="emit('open-category-modal')"
+          >
+            ＋
+          </button>
+        </div>
 
         <BaseTextField
           v-model="form.dueDate"
@@ -178,6 +189,24 @@ const emit = defineEmits<{
   justify-content: flex-end;
   gap: 12px;
   padding-top: 8px;
+}
+
+.category-control {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 42px;
+  align-items: end;
+  gap: 8px;
+}
+
+.category-add-button {
+  min-height: 42px;
+  border: 1px solid #2d6a4f;
+  border-radius: 8px;
+  color: #2d6a4f;
+  font-size: 20px;
+  font-weight: 800;
+  background: #eef6f1;
+  cursor: pointer;
 }
 
 .cancel-link,
