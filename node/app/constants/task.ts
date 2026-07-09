@@ -1,15 +1,6 @@
 /* タスク関連の定数を定義 */
 export const TASK_STATUSES = ["未着手", "進行中", "完了"] as const;
 
-export const TASK_CATEGORIES = [
-  "仕事",
-  "学習",
-  "運動",
-  "生活",
-  "趣味",
-  "その他",
-] as const;
-
 export const TASK_PRIORITIES = ["低", "中", "高"] as const;
 
 export const STATUS_LABELS = {

@@ -42,7 +42,6 @@ const closeCategoryModal = () => {
 };
 
 const handleCategoryCreated = (category: TaskCategory) => {
-  categories.value.push(category);
   form.category = category;
   closeCategoryModal();
 };

@@ -1,7 +1,6 @@
 /** タスクAPI・表示用の型定義 */
 
 import type {
-  TASK_CATEGORIES,
   TASK_PRIORITIES,
   TASK_STATUSES,
 } from "~/constants/task";
@@ -24,7 +23,7 @@ export type TaskStatus = (typeof TASK_STATUSES)[number];
 
 export type TaskPriority = (typeof TASK_PRIORITIES)[number];
 
-export type TaskCategory = (typeof TASK_CATEGORIES)[number];
+export type TaskCategory = string;
 
 export type TaskFormChecklistItem = {
   label: string;

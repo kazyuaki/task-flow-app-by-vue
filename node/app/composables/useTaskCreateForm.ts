@@ -3,7 +3,6 @@ import { validateTaskForm } from "~/utils/validation/task";
 
 import {
   PRIORITY_VALUES,
-  TASK_CATEGORIES,
   TASK_PRIORITIES,
   TASK_STATUSES,
 } from "~/constants/task";
@@ -14,18 +13,13 @@ import type {
   TaskCreateForm,
 } from "~/types/task";
 
-const isTaskCategory = (category: string): category is TaskCategory =>
-  (TASK_CATEGORIES as readonly string[]).includes(category);
-
 export const useTaskCreateForm = () => {
   const { $api } = useNuxtApp();
   const statuses = TASK_STATUSES;
   const priorities = TASK_PRIORITIES;
   const categoryRecords = ref<ApiCategory[]>([]);
   const categories = computed(() =>
-    categoryRecords.value
-      .map((category) => category.name)
-      .filter(isTaskCategory),
+    categoryRecords.value.map((category) => category.name),
   );
 
   const isSubmitting = ref(false);
@@ -238,7 +232,14 @@ export const useTaskCreateForm = () => {
     try {
       const response = await $api.get<ApiCategoryResponse>("/api/categories");
       categoryRecords.value = response.data.data;
-      form.category = categories.value[0] ?? "";
+
+      if (
+        !categoryRecords.value.some(
+          (category) => category.name === form.category,
+        )
+      ) {
+        form.category = categories.value[0] ?? "";
+      }
     } catch (error) {
       generalError.value = "カテゴリの取得に失敗しました。";
       console.error("カテゴリの取得に失敗しました:", error);
@@ -259,6 +260,7 @@ export const useTaskCreateForm = () => {
     isSubmitting,
     canSubmit,
     getToday,
+    loadCategories,
     clearFieldError,
     submitTask,
     touchField,

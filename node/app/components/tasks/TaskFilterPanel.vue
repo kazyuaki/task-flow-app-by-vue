@@ -1,10 +1,11 @@
 <!-- タスク一覧のフィルターパネル -->
 <script setup lang="ts">
-import type { TASK_CATEGORIES, TASK_PRIORITIES, TASK_STATUSES } from '~/constants/task';
+import type { TASK_PRIORITIES, TASK_STATUSES } from "~/constants/task";
+import type { TaskCategory } from "~/types/task";
 
 defineProps<{
   statuses: typeof TASK_STATUSES;
-  categories: typeof TASK_CATEGORIES;
+  categories: readonly TaskCategory[];
   priorities: typeof TASK_PRIORITIES;
 }>();
 

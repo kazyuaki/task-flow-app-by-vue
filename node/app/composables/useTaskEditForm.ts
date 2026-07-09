@@ -1,17 +1,21 @@
-import { TASK_CATEGORIES } from "~/constants/task";
-import type { TaskCategory, TaskDetail, UpdateTaskPayload } from "~/types/task";
+import { computed, onMounted, reactive, ref } from "vue";
+import type {
+  ApiCategory,
+  ApiCategoryResponse,
+  TaskDetail,
+  UpdateTaskPayload,
+} from "~/types/task";
 
 /* タスク編集フォームのロジックを管理するComposable */
 export const useTaskEditForm = (
   task: TaskDetail,
   emit: (event: "submit", payload: UpdateTaskPayload) => void,
 ) => {
-  const categories = TASK_CATEGORIES;
-  const initialCategory = categories.includes(
-    task.category as TaskCategory,
-  )
-    ? (task.category as TaskCategory)
-    : categories[0];
+  const { $api } = useNuxtApp();
+  const categoryRecords = ref<ApiCategory[]>([]);
+  const categories = computed(() =>
+    categoryRecords.value.map((category) => category.name),
+  );
 
   /* フォームの状態をリアクティブに管理 */
   const form = reactive({
@@ -20,7 +24,7 @@ export const useTaskEditForm = (
     status: task.status,
     priority: task.priority,
     assignee: task.assignee,
-    category: initialCategory,
+    category: task.category,
     dueDate: task.dueDateInput,
     checklist: [...task.checklist],
   });
@@ -65,6 +69,26 @@ export const useTaskEditForm = (
     emit("submit", payload);
     console.log("編集フォーム送信:", form);
   };
+
+  const loadCategories = async () => {
+    try {
+      const response = await $api.get<ApiCategoryResponse>("/api/categories");
+      categoryRecords.value = response.data.data;
+
+      if (
+        !categoryRecords.value.some(
+          (category) => category.name === form.category,
+        )
+      ) {
+        form.category = categories.value[0] ?? "";
+      }
+    } catch (error) {
+      console.error("カテゴリの取得に失敗しました:", error);
+    }
+  };
+
+  onMounted(loadCategories);
+
   return {
     form,
     categories,

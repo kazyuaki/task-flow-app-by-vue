@@ -1,6 +1,6 @@
 <!-- タスク一覧ページ　-->
 <script setup lang="ts">
-import { ref } from "vue";
+import { computed, ref } from "vue";
 import AppHeader from "~/components/layouts/AppHeader.vue";
 import PageTitle from "~/components/common/PageTitle.vue";
 import TaskFilterPanel from "~/components/tasks/TaskFilterPanel.vue";
@@ -9,12 +9,8 @@ import TaskTable from "~/components/tasks/TaskTable.vue";
 import { useTaskFilter } from "~/composables/useTaskFilter";
 import { useTaskSummary } from "~/composables/useTaskSummary";
 import { useTasks } from "~/composables/useTasks";
-import type { SortKey, SortOrder } from "~/types/task";
-import {
-  TASK_CATEGORIES,
-  TASK_STATUSES,
-  TASK_PRIORITIES,
-} from "~/constants/task";
+import type { ApiCategoryResponse, SortKey, SortOrder } from "~/types/task";
+import { TASK_STATUSES, TASK_PRIORITIES } from "~/constants/task";
 
 definePageMeta({
   middleware: "auth",
@@ -24,11 +20,23 @@ const keyword = ref("");
 const selectedStatus = ref("");
 const statuses = TASK_STATUSES;
 const selectedCategory = ref("");
-const categories = TASK_CATEGORIES;
 const selectedPriority = ref("");
 const priorities = TASK_PRIORITIES;
 const sortKey = ref<SortKey>("dueDate");
 const sortOrder = ref<SortOrder>("asc");
+const { $api } = useNuxtApp();
+
+const { data: categoryResponse } = await useAsyncData(
+  "task-filter-categories",
+  async () => {
+    const response = await $api.get<ApiCategoryResponse>("/api/categories");
+
+    return response.data;
+  },
+);
+const categories = computed(() =>
+  categoryResponse.value?.data.map((category) => category.name) ?? [],
+);
 
 /* タスクデータの取得 */
 const { tasks } = await useTasks();
