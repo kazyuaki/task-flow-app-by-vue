@@ -7,22 +7,24 @@ import type { TaskCategory } from "~/types/task";
 
 const props = defineProps<{
   open: boolean;
+  errorMessage: string;
+  isSubmitting: boolean;
 }>();
 
 const emit = defineEmits<{
   close: [];
-  created: [category: TaskCategory];
+  create: [category: TaskCategory];
 }>();
 
 const categoryName = ref("");
-const errorMessage = ref("");
+const localErrorMessage = ref("");
 
 watch(
   () => props.open,
   (open) => {
     if (open) {
       categoryName.value = "";
-      errorMessage.value = "";
+      localErrorMessage.value = "";
     }
   },
 );
@@ -35,11 +37,12 @@ const handleSubmit = () => {
   const name = categoryName.value.trim();
 
   if (!name) {
-    errorMessage.value = "カテゴリ名を入力してください。";
+    localErrorMessage.value = "カテゴリ名を入力してください。";
     return;
   }
 
-  emit("created", name as TaskCategory);
+  localErrorMessage.value = "";
+  emit("create", name as TaskCategory);
 };
 </script>
 
@@ -66,8 +69,8 @@ const handleSubmit = () => {
             />
           </label>
 
-          <p v-if="errorMessage" class="error-message">
-            {{ errorMessage }}
+          <p v-if="localErrorMessage || errorMessage" class="error-message">
+            {{ localErrorMessage || errorMessage }}
           </p>
 
           <footer class="modal-actions">
@@ -75,8 +78,8 @@ const handleSubmit = () => {
               キャンセル
             </button>
 
-            <button class="primary-button" type="submit">
-              作成する
+            <button class="primary-button" type="submit" :disabled="isSubmitting">
+              {{ isSubmitting ? "作成中..." : "作成する" }}
             </button>
           </footer>
         </form>
@@ -187,5 +190,10 @@ const handleSubmit = () => {
   border: 0;
   color: #fff;
   background: #2d6a4f;
+}
+
+.primary-button:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
 }
 </style>

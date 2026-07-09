@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\Category\CreateCategoryController;
 use App\Http\Controllers\Api\Category\GetCategoryListController;
 use App\Http\Controllers\Api\Task\DeleteTaskController;
 use App\Http\Controllers\Api\Task\GetTaskListController;
@@ -17,6 +18,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // カテゴリ一覧取得
     Route::get('/categories', GetCategoryListController::class);
+
+    // カテゴリ作成
+    Route::post('/categories', CreateCategoryController::class);
 
     // タスク一覧取得
     Route::get('/tasks', GetTaskListController::class);

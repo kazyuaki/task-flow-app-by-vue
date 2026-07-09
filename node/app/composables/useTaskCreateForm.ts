@@ -8,6 +8,7 @@ import {
 } from "~/constants/task";
 import type {
   ApiCategory,
+  ApiCategoryCreateResponse,
   ApiCategoryResponse,
   TaskCategory,
   TaskCreateForm,
@@ -246,6 +247,57 @@ export const useTaskCreateForm = () => {
     }
   };
 
+  const getErrorMessage = (error: unknown, fallbackMessage: string) => {
+    const response = error as {
+      response?: {
+        data?: {
+          message?: string;
+          errors?: Record<string, string[]>;
+        };
+      };
+      data?: {
+        message?: string;
+        errors?: Record<string, string[]>;
+      };
+    };
+    const errorData = response.response?.data ?? response.data;
+
+    return (
+      errorData?.errors?.name?.[0] || errorData?.message || fallbackMessage
+    );
+  };
+
+  const createCategory = async (name: TaskCategory) => {
+    try {
+      await $api.get("/sanctum/csrf-cookie");
+      const response = await $api.post<ApiCategoryCreateResponse>(
+        "/api/categories",
+        {
+          name,
+        },
+      );
+      const createdCategory = response.data.data;
+
+      await loadCategories();
+      form.category = createdCategory.name;
+
+      return {
+        category: createdCategory.name as TaskCategory,
+        errorMessage: "",
+      };
+    } catch (error) {
+      console.error("カテゴリの作成に失敗しました:", error);
+
+      return {
+        category: "",
+        errorMessage: getErrorMessage(
+          error,
+          "カテゴリの作成に失敗しました。",
+        ),
+      };
+    }
+  };
+
   onMounted(loadCategories);
 
   return {
@@ -261,6 +313,7 @@ export const useTaskCreateForm = () => {
     canSubmit,
     getToday,
     loadCategories,
+    createCategory,
     clearFieldError,
     submitTask,
     touchField,
