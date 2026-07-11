@@ -94,6 +94,7 @@ const handleSubmit = async () => {
 <style scoped>
 .login-panel {
   width: 100%;
+  box-sizing: border-box;
   padding: 32px;
   background: rgba(255, 255, 255, 0.86);
   border: 1px solid rgba(23, 32, 51, 0.1);
@@ -136,6 +137,8 @@ button {
 }
 
 input {
+  width: 100%;
+  box-sizing: border-box;
   padding: 10px 12px;
   color: #172033;
   border: 1px solid #cdd5df;
@@ -158,7 +161,9 @@ input:focus {
 }
 
 .password-toggle input {
+  width: auto;
   min-height: auto;
+  margin: 0;
 }
 
 button {

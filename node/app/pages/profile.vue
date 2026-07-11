@@ -66,16 +66,16 @@ const handlePasswordSave = async (payload: {
 </script>
 
 <template>
-  <div class="page">
+  <main class="page">
     <AppHeader />
-    <main class="profile-page">
+    <section class="profile-page">
       <ProfileCard
         :name="user?.name ?? ''"
         :email="user?.email ?? ''"
         @edit="openProfileModal"
         @changePassword="openPasswordModal"
       />
-    </main>
+    </section>
 
     <ProfileEditModal
       :is-open="showProfileModal"
@@ -89,18 +89,35 @@ const handlePasswordSave = async (payload: {
       @close="closePasswordModal"
       @save="handlePasswordSave"
     />
-  </div>
+  </main>
 </template>
 
 <style scoped>
 .page {
   min-height: 100vh;
-  background: linear-gradient(135deg, #edf6f3 0%, #f7faf9 55%, #edf6f3 100%);
+  padding: 32px;
+  background:
+    radial-gradient(
+      circle at top left,
+      rgba(45, 106, 79, 0.12),
+      transparent 32%
+    ),
+    linear-gradient(135deg, #f8fbfa 0%, #eef6f2 100%);
 }
 
 .profile-page {
   display: flex;
   justify-content: center;
   padding: 40px 16px;
+}
+
+@media (max-width: 760px) {
+  .page {
+    padding: 12px;
+  }
+
+  .profile-page {
+    padding: 32px 10px;
+  }
 }
 </style>

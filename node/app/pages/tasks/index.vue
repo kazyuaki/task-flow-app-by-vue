@@ -34,8 +34,8 @@ const { data: categoryResponse } = await useAsyncData(
     return response.data;
   },
 );
-const categories = computed(() =>
-  categoryResponse.value?.data.map((category) => category.name) ?? [],
+const categories = computed(
+  () => categoryResponse.value?.data.map((category) => category.name) ?? [],
 );
 
 /* タスクデータの取得 */
@@ -95,6 +95,10 @@ const filteredTasks = useTaskFilter({
       <span>件</span>
     </section>
 
+    <p class="mobile-notice">
+      💡 スマートフォンでは横向き表示でのご利用を推奨しています。
+    </p>
+
     <TaskTable
       :tasks="filteredTasks"
       :sort-key="sortKey"
@@ -131,5 +135,25 @@ const filteredTasks = useTaskFilter({
 .list-summary strong {
   color: #2d6a4f;
   font-size: 18px;
+}
+
+.mobile-notice {
+  display: none;
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  color: #175cd3;
+  font-size: 13px;
+  background: #eff8ff;
+}
+
+@media (max-width: 760px) {
+  .page {
+    padding: 12px;
+  }
+
+  .mobile-notice {
+    display: block;
+  }
 }
 </style>

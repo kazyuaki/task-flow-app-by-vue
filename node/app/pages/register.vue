@@ -3,7 +3,6 @@
 import RegisterFormPanel from "~/components/auth/RegisterFormPanel.vue";
 import RegisterIntro from "~/components/auth/RegisterIntro.vue";
 import AppHeader from "~/components/layouts/AppHeader.vue";
-
 </script>
 <template>
   <main class="page">
@@ -44,6 +43,10 @@ import AppHeader from "~/components/layouts/AppHeader.vue";
     min-height: auto;
     grid-template-columns: 1fr;
     padding: 40px 0;
+  }
+
+  .page {
+    padding: 12px;
   }
 }
 </style>

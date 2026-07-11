@@ -202,6 +202,10 @@ onBeforeUnmount(() => {
 }
 
 @media (max-width: 860px) {
+  .page {
+    padding: 12px;
+  }
+
   .create-layout {
     grid-template-columns: 1fr;
   }

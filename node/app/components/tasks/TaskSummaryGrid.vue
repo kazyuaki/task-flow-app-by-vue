@@ -91,4 +91,21 @@ defineProps<{
 .summary-card--completed strong {
   color: #2d6a4f;
 }
+
+@media (max-width: 760px) {
+  .summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .summary-card {
+    min-width: 0;
+    padding: 16px;
+  }
+
+  .summary-card span {
+    white-space: nowrap;
+  }
+
+}
 </style>

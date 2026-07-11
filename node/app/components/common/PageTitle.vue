@@ -19,7 +19,15 @@ defineProps<{
       <p class="eyebrow">{{ eyebrow }}</p>
       <h1>{{ title }}</h1>
     </div>
-    <div class="action-group">
+    <div
+      :class="[
+        'action-group',
+        {
+          'action-group--single':
+            actionLabel && actionTo && !secondaryActionLabel,
+        },
+      ]"
+    >
       <NuxtLink
         v-if="secondaryActionLabel && secondaryActionTo"
         :class="[
@@ -33,10 +41,7 @@ defineProps<{
 
       <NuxtLink
         v-if="actionLabel && actionTo"
-        :class="[
-          'action-link',
-          `action-link--${actionVariant || 'primary'}`,
-        ]"
+        :class="['action-link', `action-link--${actionVariant || 'primary'}`]"
         :to="actionTo"
       >
         {{ actionLabel }}
@@ -105,5 +110,39 @@ defineProps<{
   border: 1px solid #d0d5dd;
   color: #344054;
   background: rgba(255, 255, 255, 0.86);
+}
+
+@media (max-width: 760px) {
+  .page-header {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 16px;
+    margin-top: 24px;
+  }
+
+  .page-header h1 {
+    font-size: 30px;
+    line-height: 1.25;
+    word-break: keep-all;
+  }
+
+  .action-group {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .action-group--single {
+    grid-template-columns: minmax(0, 160px);
+  justify-content: flex-end;
+  }
+
+  .action-link {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 0 12px;
+    text-align: center;
+    white-space: nowrap;
+  }
 }
 </style>
