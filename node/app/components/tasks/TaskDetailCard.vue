@@ -86,7 +86,7 @@ const checklistProgress = computed(() => {
       <dd>{{ task.updatedAt }}</dd>
     </dl>
 
-    <section class="checklist-section" aria-labelledby="task-checklist">
+    <section class="detail-section" aria-labelledby="detail-description">
       <header class="checklist-header">
         <h3 id="task-checklist">チェックリスト</h3>
         <p>{{ checklistProgress.done }} / {{ checklistProgress.total }} 完了</p>
@@ -397,19 +397,20 @@ const checklistProgress = computed(() => {
   transform: none;
 }
 
-@media (max-width: 640px) {
+@media (max-width: 760px) {
   .detail-header h2 {
     font-size: 22px;
   }
 
   .detail-actions {
-    justify-content: stretch;
+    align-items: stretch;
     flex-direction: column;
   }
 
   .secondary-link,
   .danger-button {
     width: 100%;
+    box-sizing: border-box;
   }
 }
 </style>

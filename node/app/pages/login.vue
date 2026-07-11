@@ -11,9 +11,9 @@
 </template>
 
 <script setup lang="ts">
-import LoginFormPanel from '../components/auth/LoginFormPanel.vue'
-import LoginIntro from '../components/auth/LoginIntro.vue'
-import AppHeader from '../components/layouts/AppHeader.vue'
+import LoginFormPanel from "../components/auth/LoginFormPanel.vue";
+import LoginIntro from "../components/auth/LoginIntro.vue";
+import AppHeader from "../components/layouts/AppHeader.vue";
 </script>
 
 <style scoped>
@@ -45,6 +45,10 @@ import AppHeader from '../components/layouts/AppHeader.vue'
     min-height: auto;
     grid-template-columns: 1fr;
     padding: 40px 0;
+  }
+
+  .page {
+    padding: 12px;
   }
 }
 </style>

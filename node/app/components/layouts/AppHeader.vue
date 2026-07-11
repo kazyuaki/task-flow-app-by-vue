@@ -1,13 +1,15 @@
-<!-- AppHeader.vue -->  
+<!-- AppHeader.vue -->
 <!-- アプリ全体のヘッダーコンポーネント -->
 
 <script setup lang="ts">
 const route = useRoute();
-
 const { isAuthenticated, logout } = useAuth();
+
+const isAuthPage = computed(() => ["/login", "/register"].includes(route.path));
 const isTasksPage = computed(() => route.path === "/tasks");
 const isCreatePage = computed(() => route.path === "/tasks/create");
-const isProfielPage = computed(() => route.path === "/profile");
+const isProfilePage = computed(() => route.path === "/profile");
+
 const handleLogout = async () => {
   await logout();
 };
@@ -19,11 +21,19 @@ const handleLogout = async () => {
       <span class="brand-mark">T</span>
       <span>Task Flow</span>
     </NuxtLink>
-    <nav class="header-nav" aria-label="メインナビゲーション">
+    <nav
+      v-if="!isAuthPage && isAuthenticated"
+      class="header-nav"
+      aria-label="メインナビゲーション"
+    >
       <NuxtLink v-if="!isTasksPage" to="/tasks">タスク一覧</NuxtLink>
-      <NuxtLink v-if="!isCreatePage" to="/tasks/create">新規作成</NuxtLink>
-      <NuxtLink v-if="!isProfielPage" to="/profile">プロフィール</NuxtLink>
-      <button v-if="isAuthenticated" class="logout-button" @click="handleLogout">
+      <NuxtLink v-if="!isCreatePage && !isTasksPage" to="/tasks/create">新規作成</NuxtLink>
+      <NuxtLink v-if="!isProfilePage" to="/profile">プロフィール</NuxtLink>
+      <button
+        v-if="isAuthenticated"
+        class="logout-button"
+        @click="handleLogout"
+      >
         ログアウト
       </button>
     </nav>
@@ -103,6 +113,20 @@ const handleLogout = async () => {
   .header-nav {
     width: 100%;
     justify-content: space-between;
+  }
+}
+
+@media (max-width: 760px) {
+  .header-nav {
+    width:100%;
+    justify-content: space-between;
+    gap: 12px 20px;
+  }
+
+  .header-nav a,
+  .logout-button {
+    text-align: center;
+    white-space: nowrap;
   }
 }
 </style>

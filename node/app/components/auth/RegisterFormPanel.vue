@@ -58,9 +58,9 @@ const handleSubmit = async () => {
 };
 </script>
 <template>
-  <section class="register-panel aria-labelledby=register-title">
+  <section class="register-panel" aria-labelledby="register-title">
     <p class="panel-label">Create account</p>
-    <h2 id="regsiter-title">会員登録</h2>
+    <h2 id="register-title">会員登録</h2>
 
     <form class="register-form" novalidate @submit.prevent="handleSubmit">
       <label>
@@ -129,6 +129,7 @@ const handleSubmit = async () => {
 <style scoped>
 .register-panel {
   width: 100%;
+  box-sizing: border-box;
   padding: 32px;
   background: rgba(255, 255, 255, 0.86);
   border: 1px solid rgba(23, 32, 51, 0.1);
@@ -179,6 +180,13 @@ input {
 input:focus {
   border-color: #2d6a4f;
   box-shadow: 0 0 0 4px rgba(45, 106, 79, 0.14);
+}
+
+input[type="text"],
+input[type="email"],
+input[type="password"] {
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .error-message {

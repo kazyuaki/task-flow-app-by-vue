@@ -106,4 +106,14 @@ const handleDeleteTask = async () => {
     ),
     linear-gradient(135deg, #f8fbfa 0%, #eef6f2 100%);
 }
+
+@media (max-width: 760px) {
+  .page {
+    padding: 8px;
+  }
+
+  .profile-page {
+    padding: 32px 10px;
+  }
+}
 </style>

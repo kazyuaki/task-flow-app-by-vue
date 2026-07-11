@@ -94,4 +94,10 @@ const handleUpdate = async (payload: UpdateTaskPayload) => {
   color: #6b7c73;
   line-height: 1.8;
 }
+
+@media (max-width: 760px) {
+  .page {
+    padding: 12px;
+  }
+}
 </style>
