@@ -21,18 +21,18 @@ class CreateCategoryRequest extends FormRequest
      *
      * @return array<string, ValidationRule|array<mixed>|string>
      */
-public function rules(): array
-{
-    return [
-        'name' => [
-            'required',
-            'string',
-            'max:30',
-            Rule::unique('categories', 'name')
-                ->where('user_id', $this->user()->id),
-        ],
-    ];
-}
+    public function rules(): array
+    {
+        return [
+            'name' => [
+                'required',
+                'string',
+                'max:30',
+                Rule::unique('categories', 'name')
+                    ->where('user_id', $this->user()->id),
+            ],
+        ];
+    }
 
     public function messages(): array
     {
