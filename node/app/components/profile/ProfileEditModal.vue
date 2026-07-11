@@ -1,5 +1,7 @@
 <!-- プロフィール編集モーダル -->
 <script setup lang="ts">
+import { computed, reactive, watch } from "vue";
+
 type Props = {
   isOpen: boolean;
   name: string;
@@ -18,6 +20,53 @@ const form = reactive({
   email: "",
 });
 
+const errors = reactive({
+  name: "",
+  email: "",
+});
+
+const touched = reactive({
+  name: false,
+  email: false,
+});
+
+const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+const validateName = () => {
+  errors.name = form.name.trim() ? "" : "名前を入力してください。";
+};
+
+const validateEmail = () => {
+  if (!form.email.trim()) {
+    errors.email = "メールアドレスを入力してください。";
+  } else if (!emailPattern.test(form.email)) {
+    errors.email = "メールアドレスの形式が正しくありません。";
+  } else {
+    errors.email = "";
+  }
+};
+
+const validateForm = () => {
+  validateName();
+  validateEmail();
+
+  return !errors.name && !errors.email;
+};
+
+const handleNameBlur = () => {
+  touched.name = true;
+  validateName();
+};
+
+const handleEmailBlur = () => {
+  touched.email = true;
+  validateEmail();
+};
+
+const canSubmit = computed(() => {
+  return form.name.trim() !== "" && emailPattern.test(form.email);
+});
+
 watch(
   () => props.isOpen,
   (isOpen) => {
@@ -27,9 +76,31 @@ watch(
 
     form.name = props.name;
     form.email = props.email;
+    errors.name = "";
+    errors.email = "";
+    touched.name = false;
+    touched.email = false;
   },
   {
     immediate: true,
+  },
+);
+
+watch(
+  () => form.name,
+  () => {
+    if (touched.name) {
+      validateName();
+    }
+  },
+);
+
+watch(
+  () => form.email,
+  () => {
+    if (touched.email) {
+      validateEmail();
+    }
   },
 );
 
@@ -38,6 +109,13 @@ const handleClose = () => {
 };
 
 const handleSubmit = () => {
+  touched.name = true;
+  touched.email = true;
+
+  if (!validateForm()) {
+    return;
+  }
+
   emit("save", {
     name: form.name,
     email: form.email,
@@ -59,12 +137,28 @@ const handleSubmit = () => {
         <form class="modal-form" @submit.prevent="handleSubmit">
           <label class="form-item">
             <span>名前</span>
-            <input v-model="form.name" type="text" autocomplete="name" />
+            <input
+              v-model="form.name"
+              type="text"
+              autocomplete="name"
+              @blur="handleNameBlur"
+            />
+            <p v-if="touched.name && errors.name" class="error-message">
+              {{ errors.name }}
+            </p>
           </label>
 
           <label class="form-item">
             <span>メールアドレス</span>
-            <input v-model="form.email" type="email" autocomplete="email" />
+            <input
+              v-model="form.email"
+              type="email"
+              autocomplete="email"
+              @blur="handleEmailBlur"
+            />
+            <p v-if="touched.email && errors.email" class="error-message">
+              {{ errors.email }}
+            </p>
           </label>
 
           <div class="modal-buttons">
@@ -72,7 +166,9 @@ const handleSubmit = () => {
               キャンセル
             </button>
 
-            <button type="submit" class="save-button">保存する</button>
+            <button type="submit" class="save-button" :disabled="!canSubmit">
+              保存する
+            </button>
           </div>
         </form>
       </section>
@@ -137,6 +233,12 @@ const handleSubmit = () => {
   box-shadow: 0 0 0 3px rgb(47 117 93 / 12%);
 }
 
+.error-message {
+  margin: 4px 0 0;
+  color: #e03131;
+  font-size: 13px;
+}
+
 .modal-buttons {
   display: flex;
   gap: 12px;
@@ -150,6 +252,11 @@ const handleSubmit = () => {
   border-radius: 8px;
   font-weight: 600;
   cursor: pointer;
+}
+
+.save-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .cancel-button {
