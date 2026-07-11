@@ -2,11 +2,10 @@
 
 namespace App\Http\Requests;
 
-use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-class CreateCategoryRequest extends FormRequest
+class UpdateProfileRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -24,12 +23,12 @@ class CreateCategoryRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => [
+            'name' => ['required', 'string', 'max:255'],
+            'email' => [
                 'required',
-                'string',
-                'max:30',
-                Rule::unique('categories', 'name')
-                    ->where('user_id', $this->user()->id),
+                'email',
+                'max:255',
+                Rule::unique('users')->ignore($this->user()->id),
             ],
         ];
     }
@@ -37,9 +36,10 @@ class CreateCategoryRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'name.required' => 'カテゴリ名を入力してください。',
-            'name.max' => 'カテゴリ名は30文字以内で入力してください。',
-            'name.unique' => '同じカテゴリ名が既に存在します。',
+            'name.required' => '名前は必須です。',
+            'email.required' => 'メールアドレスは必須です。',
+            'email.email' => 'メールアドレスの形式が正しくありません。',
+            'email.unique' => 'そのメールアドレスは既に使用されています。',
         ];
     }
 }

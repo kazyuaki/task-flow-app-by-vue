@@ -7,6 +7,7 @@ const route = useRoute();
 const { isAuthenticated, logout } = useAuth();
 const isTasksPage = computed(() => route.path === "/tasks");
 const isCreatePage = computed(() => route.path === "/tasks/create");
+const isProfielPage = computed(() => route.path === "/profile");
 const handleLogout = async () => {
   await logout();
 };
@@ -21,6 +22,7 @@ const handleLogout = async () => {
     <nav class="header-nav" aria-label="メインナビゲーション">
       <NuxtLink v-if="!isTasksPage" to="/tasks">タスク一覧</NuxtLink>
       <NuxtLink v-if="!isCreatePage" to="/tasks/create">新規作成</NuxtLink>
+      <NuxtLink v-if="!isProfielPage" to="/profile">プロフィール</NuxtLink>
       <button v-if="isAuthenticated" class="logout-button" @click="handleLogout">
         ログアウト
       </button>
