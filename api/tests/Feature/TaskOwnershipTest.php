@@ -12,6 +12,9 @@ class TaskOwnershipTest extends TestCase
 {
     use RefreshDatabase;
 
+    /**
+     * タスク一覧ではログインユーザー自身のタスクのみ取得できること
+     */
     public function test_list_only_returns_the_authenticated_users_tasks(): void
     {
         [$user, $otherUser] = User::factory()->count(2)->create();
@@ -25,6 +28,9 @@ class TaskOwnershipTest extends TestCase
             ->assertJsonPath('data.0.id', $ownTask->id);
     }
 
+    /**
+     * タスク作成時は認証ユーザーに紐付いて保存されること
+     */
     public function test_created_task_always_belongs_to_the_authenticated_user(): void
     {
         [$user, $otherUser] = User::factory()->count(2)->create();
@@ -47,6 +53,9 @@ class TaskOwnershipTest extends TestCase
         ]);
     }
 
+    /**
+     * 他ユーザーのタスクは参照・更新・削除できないこと
+     */
     public function test_another_users_task_cannot_be_shown_updated_or_deleted(): void
     {
         [$user, $otherUser] = User::factory()->count(2)->create();
@@ -73,6 +82,9 @@ class TaskOwnershipTest extends TestCase
         ]);
     }
 
+    /**
+     * カテゴリ一覧は認証ユーザーのカテゴリのみ取得できること
+     */
     public function test_category_list_is_created_and_scoped_to_the_authenticated_user(): void
     {
         [$user, $otherUser] = User::factory()->count(2)->create();
@@ -95,6 +107,9 @@ class TaskOwnershipTest extends TestCase
         ]);
     }
 
+    /**
+     * CategorySeeder実行時に各ユーザーへデフォルトカテゴリが作成されること
+     */
     public function test_category_seeder_creates_default_categories_for_each_user(): void
     {
         $users = User::factory()->count(2)->create();
