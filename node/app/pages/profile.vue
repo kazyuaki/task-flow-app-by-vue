@@ -7,6 +7,7 @@ import PasswordChangeModal from "~/components/profile/PasswordChangeModal.vue";
 
 const { user, fetchUser } = useAuth();
 const { $api } = useNuxtApp();
+const { showToast } = useToast();
 
 const showProfileModal = ref(false);
 const showPasswordModal = ref(false);
@@ -41,7 +42,9 @@ const handleProfileSave = async (payload: { name: string; email: string }) => {
     await fetchUser();
 
     showProfileModal.value = false;
+    showToast("プロフィールを更新しました。");
   } catch (error) {
+    showToast("プロフィールの更新に失敗しました。", "error");
     console.error(error);
   }
 };
@@ -59,7 +62,9 @@ const handlePasswordSave = async (payload: {
     });
 
     showPasswordModal.value = false;
+    showToast("パスワードを変更しました。");
   } catch (error) {
+    showToast("パスワードの変更に失敗しました。", "error");
     console.error(error);
   }
 };

@@ -16,6 +16,7 @@ import type {
 
 export const useTaskCreateForm = () => {
   const { $api } = useNuxtApp();
+  const { showToast } = useToast();
   const statuses = TASK_STATUSES;
   const priorities = TASK_PRIORITIES;
   const categoryRecords = ref<ApiCategory[]>([]);
@@ -220,9 +221,11 @@ export const useTaskCreateForm = () => {
           sort_order: index + 1,
         })),
       });
+      showToast("タスクを作成しました。");
       await navigateTo("/tasks");
     } catch (error) {
       applyServerErrors(error);
+      showToast("タスクの作成に失敗しました。", "error");
       console.error("タスクの作成に失敗しました:", error);
     } finally {
       isSubmitting.value = false;
