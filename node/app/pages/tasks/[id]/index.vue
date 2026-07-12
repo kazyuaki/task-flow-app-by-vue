@@ -7,6 +7,7 @@ import TaskDetailStateMessage from "~/components/tasks/TaskDetailStateMessage.vu
 import ConfirmDialog from "~/components/common/ConfirmDialog.vue";
 
 const route = useRoute();
+const { showToast } = useToast();
 
 const taskId = Number(route.params.id);
 
@@ -36,10 +37,11 @@ const handleDeleteTask = async () => {
     isDeleting.value = true;
     await deleteTask(deleteTargetTaskId.value);
     closeDeleteDialog();
+    showToast("タスクを削除しました。");
     await navigateTo("/tasks");
   } catch (err) {
     console.error("タスクの削除に失敗しました:", err);
-    alert("タスクの削除に失敗しました。もう一度お試しください。");
+    showToast("タスクの削除に失敗しました。もう一度お試しください。", "error");
   } finally {
     isDeleting.value = false;
   }

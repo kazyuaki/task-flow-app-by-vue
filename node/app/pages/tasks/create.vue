@@ -35,8 +35,7 @@ const {
 const isCategoryModalOpen = ref(false);
 const isCategorySubmitting = ref(false);
 const categoryErrorMessage = ref("");
-const toastMessage = ref("");
-let toastTimer: ReturnType<typeof setTimeout> | null = null;
+const { showToast } = useToast();
 
 const openCategoryModal = () => {
   categoryErrorMessage.value = "";
@@ -46,19 +45,6 @@ const openCategoryModal = () => {
 const closeCategoryModal = () => {
   isCategoryModalOpen.value = false;
   categoryErrorMessage.value = "";
-};
-
-const showToast = (message: string) => {
-  toastMessage.value = message;
-
-  if (toastTimer) {
-    clearTimeout(toastTimer);
-  }
-
-  toastTimer = setTimeout(() => {
-    toastMessage.value = "";
-    toastTimer = null;
-  }, 3000);
 };
 
 const handleCategoryCreate = async (category: TaskCategory) => {
@@ -73,18 +59,13 @@ const handleCategoryCreate = async (category: TaskCategory) => {
 
   if (result.errorMessage) {
     categoryErrorMessage.value = result.errorMessage;
+    showToast(result.errorMessage, "error");
     return;
   }
 
   closeCategoryModal();
   showToast(`カテゴリ「${result.category}」を作成しました。`);
 };
-
-onBeforeUnmount(() => {
-  if (toastTimer) {
-    clearTimeout(toastTimer);
-  }
-});
 </script>
 
 <template>
@@ -139,11 +120,6 @@ onBeforeUnmount(() => {
       @create="handleCategoryCreate"
     />
 
-    <Transition name="toast">
-      <p v-if="toastMessage" class="toast-message" role="status">
-        {{ toastMessage }}
-      </p>
-    </Transition>
   </main>
 </template>
 
@@ -170,37 +146,6 @@ onBeforeUnmount(() => {
   min-width: 0;
 }
 
-.toast-message {
-  position: fixed;
-  right: 24px;
-  bottom: 24px;
-  z-index: 1100;
-  max-width: min(360px, calc(100vw - 48px));
-  box-sizing: border-box;
-  margin: 0;
-  padding: 14px 16px;
-  border: 1px solid #b7e4c7;
-  border-radius: 8px;
-  color: #1b4332;
-  font-size: 14px;
-  font-weight: 800;
-  background: #f1fff6;
-  box-shadow: 0 16px 40px rgba(16, 24, 40, 0.16);
-}
-
-.toast-enter-active,
-.toast-leave-active {
-  transition:
-    opacity 0.18s ease,
-    transform 0.18s ease;
-}
-
-.toast-enter-from,
-.toast-leave-to {
-  opacity: 0;
-  transform: translateY(8px);
-}
-
 @media (max-width: 860px) {
   .page {
     padding: 12px;
@@ -210,10 +155,5 @@ onBeforeUnmount(() => {
     grid-template-columns: 1fr;
   }
 
-  .toast-message {
-    right: 16px;
-    bottom: 16px;
-    max-width: calc(100vw - 32px);
-  }
 }
 </style>

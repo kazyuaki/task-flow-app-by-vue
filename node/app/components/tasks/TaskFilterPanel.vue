@@ -27,7 +27,7 @@ const selectedPriority = defineModel<string>("selectedPriority", { required: tru
         <input
           v-model="keyword"
           type="text"
-          placeholder="例：API、ログイン、画面"
+          placeholder="キーワードで検索"
         />
       </label>
     </div>

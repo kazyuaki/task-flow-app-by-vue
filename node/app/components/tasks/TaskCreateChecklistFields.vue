@@ -48,7 +48,7 @@ const getFieldErrors = (field: string) => {
           <input
             v-model="item.label"
             type="text"
-            placeholder="例：API仕様を確認する"
+            placeholder="チェック項目を入力"
             :aria-invalid="
               Boolean(getFieldErrors(`checklist.${index}.label`).length)
             "

@@ -7,6 +7,7 @@ import TaskEditForm from "~/components/tasks/TaskEditForm.vue";
 import type { UpdateTaskPayload } from "~/types/task";
 
 const route = useRoute();
+const { showToast } = useToast();
 
 const taskId = Number(route.params.id);
 const { displayTask, pending, error } = await useTaskDetail(taskId);
@@ -19,10 +20,11 @@ const handleUpdate = async (payload: UpdateTaskPayload) => {
     await useTaskUpdate(payload);
     clearNuxtData(`task-detail-${taskId}`);
     clearNuxtData("tasks");
+    showToast("タスクを更新しました。");
     await navigateTo(`/tasks/${taskId}`);
   } catch (err) {
     console.error("タスクの更新に失敗しました:", err);
-    alert("タスクの更新に失敗しました。もう一度お試しください。");
+    showToast("タスクの更新に失敗しました。もう一度お試しください。", "error");
   }
 };
 </script>
